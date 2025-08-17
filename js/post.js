@@ -58,7 +58,9 @@ async function main() {
 
   // 在索引里找到对应文章
   const idx = await Gist.getIndex();
-  const post = (idx.posts || []).find(p => p.slug === slug);
+  const posts = idx.posts || [];
+  const postIndex = posts.findIndex(p => p.slug === slug);
+  const post = posts[postIndex];
   if (!post) {
     document.querySelector('#content').textContent = '未找到文章';
     return;
@@ -74,6 +76,25 @@ async function main() {
   const { body } = parseFrontMatter(md);
   const html = DOMPurify.sanitize(marked.parse(body));
   document.querySelector('#content').innerHTML = html;
+
+  // 设置上一篇和下一篇链接
+  const prevPost = posts[postIndex - 1];
+  const nextPost = posts[postIndex + 1];
+
+  const prevPostEl = document.querySelector('#prev-post');
+  const nextPostEl = document.querySelector('#next-post');
+
+  if (prevPost) {
+    prevPostEl.href = `post.html?slug=${encodeURIComponent(prevPost.slug)}`;
+    prevPostEl.textContent = `上一篇: ${prevPost.title}`;
+    prevPostEl.style.display = '';
+  }
+
+  if (nextPost) {
+    nextPostEl.href = `post.html?slug=${encodeURIComponent(nextPost.slug)}`;
+    nextPostEl.textContent = `下一篇: ${nextPost.title}`;
+    nextPostEl.style.display = '';
+  }
 }
 
 main().catch(err => {
