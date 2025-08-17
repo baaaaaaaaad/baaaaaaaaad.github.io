@@ -26,20 +26,27 @@ function renderList() {
   const pageItems = state.filtered.slice(start, end);
 
   const ul = document.querySelector('#post-list');
-  ul.innerHTML = '';
+  // 检查元素是否存在，避免 TypeError
+  if (ul) {
+    ul.innerHTML = '';
 
-  for (const p of pageItems) {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <a href="post.html?slug=${encodeURIComponent(p.slug)}">${p.title}</a>
-      <span class="meta">${new Date(p.created_at).toLocaleDateString()} · ${p.tags?.join(', ') || ''}</span>
-      <p class="summary">${p.summary || ''}</p>
-    `;
-    ul.appendChild(li);
+    for (const p of pageItems) {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <a href="post.html?slug=${encodeURIComponent(p.slug)}">${p.title}</a>
+        <span class="meta">${new Date(p.created_at).toLocaleDateString()} · ${p.tags?.join(', ') || ''}</span>
+        <p class="summary">${p.summary || ''}</p>
+      `;
+      ul.appendChild(li);
+    }
   }
 
   const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-  document.querySelector('#pagination').textContent = `第 ${state.page}/${totalPages} 页`;
+  const paginationEl = document.querySelector('#pagination');
+  // 检查元素是否存在，避免 TypeError
+  if (paginationEl) {
+    paginationEl.textContent = `第 ${state.page}/${totalPages} 页`;
+  }
 }
 
 /** 根据所有文章数据重建标签下拉框 */
@@ -48,11 +55,14 @@ function rebuildFilters() {
   state.all.forEach(p => (p.tags || []).forEach(t => tagSet.add(t)));
 
   const sel = document.querySelector('#tag');
-  sel.innerHTML = '';
-  for (const t of [...tagSet]) {
-    const opt = document.createElement('option');
-    opt.value = t; opt.textContent = t;
-    sel.appendChild(opt);
+  // 检查元素是否存在，避免 TypeError
+  if (sel) {
+    sel.innerHTML = '';
+    for (const t of [...tagSet]) {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      sel.appendChild(opt);
+    }
   }
 }
 
@@ -72,10 +82,21 @@ function applyFilter() {
 }
 
 async function main() {
+  // 等待 DOM 加载完成
+  if (document.readyState === 'loading') {
+    await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+  }
+
   // 基本站点信息
   document.title = `${CONFIG.SITE_TITLE}`;
-  document.querySelector('#site-title').textContent = CONFIG.SITE_TITLE;
-  document.querySelector('#site-desc').textContent = CONFIG.SITE_DESC;
+  const siteTitleEl = document.querySelector('#site-title');
+  if (siteTitleEl) {
+    siteTitleEl.textContent = CONFIG.SITE_TITLE;
+  }
+  const siteDescEl = document.querySelector('#site-desc');
+  if (siteDescEl) {
+    siteDescEl.textContent = CONFIG.SITE_DESC;
+  }
 
   // 拉取索引并渲染
   const idx = await Gist.getIndex();
@@ -84,47 +105,36 @@ async function main() {
   applyFilter();
 
   // 绑定交互
-  document.querySelector('#tag').addEventListener('change', e => {
-    state.tag = e.target.value; applyFilter();
-  });
-  document.querySelector('#q').addEventListener('input', e => {
-    state.q = e.target.value; applyFilter();
-  });
-  document.querySelector('#prev').addEventListener('click', () => {
-    if (state.page > 1) { state.page--; renderList(); }
-  });
-  document.querySelector('#next').addEventListener('click', () => {
-    const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-    if (state.page < totalPages) { state.page++; renderList(); }
-  });
-}
+  const tagEl = document.querySelector('#tag');
+  if (tagEl) {
+    tagEl.addEventListener('change', e => {
+      state.tag = e.target.value; applyFilter();
+    });
+  }
 
+  const qEl = document.querySelector('#q');
+  if (qEl) {
+    qEl.addEventListener('input', e => {
+      state.q = e.target.value; applyFilter();
+    });
+  }
 
-/**
- * 初始化点击计数器
- * 为站点描述元素添加点击事件监听器，实现点击三次跳转到管理员页面的功能
- */
-let clickCount = 0;
-function initClickCounter() {
-  const siteDesc = document.querySelector('#site-desc');
-  if (siteDesc) {
-    siteDesc.addEventListener('click', () => {
-      clickCount++;
-      console.log('点击次数:', clickCount);
-      if (clickCount >= 3) {
-        window.location.href = 'admin.html';
-      }
+  const prevEl = document.querySelector('#prev');
+  if (prevEl) {
+    prevEl.addEventListener('click', () => {
+      if (state.page > 1) { state.page--; renderList(); }
+    });
+  }
+
+  const nextEl = document.querySelector('#next');
+  if (nextEl) {
+    nextEl.addEventListener('click', () => {
+      const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
+      if (state.page < totalPages) { state.page++; renderList(); }
     });
   }
 }
 
-// 等待 DOM 加载完成后再初始化点击计数器
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initClickCounter);
-} else {
-  // DOM 已经加载完成
-  initClickCounter();
-}
 
 /**
  * 主函数
