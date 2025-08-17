@@ -99,6 +99,38 @@ async function main() {
   });
 }
 
+
+/**
+ * 初始化点击计数器
+ * 为站点描述元素添加点击事件监听器，实现点击三次跳转到管理员页面的功能
+ */
+let clickCount = 0;
+function initClickCounter() {
+  const siteDesc = document.querySelector('#site-desc');
+  if (siteDesc) {
+    siteDesc.addEventListener('click', () => {
+      clickCount++;
+      console.log('点击次数:', clickCount);
+      if (clickCount >= 3) {
+        window.location.href = 'admin.html';
+      }
+    });
+  }
+}
+
+// 等待 DOM 加载完成后再初始化点击计数器
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initClickCounter);
+} else {
+  // DOM 已经加载完成
+  initClickCounter();
+}
+
+/**
+ * 主函数
+ * 初始化页面，加载文章列表，绑定事件监听器
+ */
+
 main().catch(err => {
   console.error(err);
   document.querySelector('#post-list').innerHTML = `<li class="error">加载失败：${err.message}</li>`;

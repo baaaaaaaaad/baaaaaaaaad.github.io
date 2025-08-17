@@ -1,0 +1,32 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文章列表</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="./js/nav.js"></script>
+</head>
+<body>
+<div id="nav-container"></div>
+<header>
+  <div>
+    <div id="site-desc" class="meta" style="cursor: pointer;">博客由 Gist 驱动</div>
+  </div>
+  <div class="controls">
+    <select id="tag"></select>
+    <input id="q" type="text" placeholder="搜索标题/标签/摘要">
+  </div>
+</header>
+<main>
+  <ul id="post-list"></ul>
+  <div class="controls">
+    <button id="prev">上一页</button>
+    <div id="pagination" class="meta"></div>
+    <button id="next">下一页</button>
+  </div>
+</main>
+<script type="module" src="./js/list.js"></script>
+</body>
+</html>

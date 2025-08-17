@@ -1,19 +1,118 @@
+/* 根元素变量定义 */
+:root {
+    --w: 860px; /* 页面最大宽度 */
+}
 
-:root { --w: 860px; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "PingFang SC", "Microsoft Yahei", sans-serif; margin: 0; }
-header, main { max-width: var(--w); margin: 0 auto; padding: 16px; }
-header { display:flex; justify-content: space-between; align-items: center; }
-a { color: inherit; text-decoration: none; }
-ul { list-style: none; padding: 0; }
-li { padding: 12px 0; border-bottom: 1px solid #eee; }
-.meta { color: #888; margin-left: 8px; font-size: 12px; }
-.summary { color: #555; }
-.controls { display:flex; gap: 8px; align-items: center; }
-input[type="text"], textarea, select { width: 100%; padding: 8px; border:1px solid #ddd; border-radius:6px; }
-button { padding: 6px 10px; border: 1px solid #ddd; background: #f7f7f7; border-radius: 8px; cursor: pointer; }
-button:hover { background: #efefef; }
-.table { width:100%; border-collapse: collapse; }
-.table th,.table td{ border-bottom:1px solid #eee; padding:8px; text-align:left; }
-#toast{ position:fixed; right:16px; bottom:16px; background:#000; color:#fff; padding:8px 12px; border-radius:8px; opacity:0; transition: .4s; }
-article { line-height: 1.7; }
-article img{ max-width:100%; height:auto; }
+/* 基础样式 */
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "PingFang SC", "Microsoft Yahei", sans-serif;
+    margin: 0;
+}
+
+/* 布局样式 */
+header,
+main {
+    max-width: var(--w);
+    margin: 0 auto;
+    padding: 16px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 链接样式 */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* 列表样式 */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* 元信息样式 */
+.meta {
+    color: #888;
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+.summary {
+    color: #555;
+}
+
+/* 控制区域样式 */
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* 表单元素样式 */
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* 按钮样式 */
+button {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    background: #f7f7f7;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #efefef;
+}
+
+/* 表格样式 */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Toast 提示样式 */
+#toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    background: #000;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: .4s;
+}
+
+/* 文章内容样式 */
+article {
+    line-height: 1.7;
+}
+
+article img {
+    max-width: 100%;
+    height: auto;
+}
