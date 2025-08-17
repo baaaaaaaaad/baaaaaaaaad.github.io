@@ -1,0 +1,24 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文章</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <!-- 仅用于把 Markdown 渲染成 HTML 与防 XSS；也可以自行下载到本地避免外链 -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+</head>
+<body>
+<header>
+  <a href="./" id="site-title">My Gist Blog</a>
+  <div id="meta" class="meta"></div>
+</header>
+<main>
+  <h1></h1>
+  <article id="content">加载中…</article>
+</main>
+<script type="module" src="./js/post.js"></script>
+</body>
+</html>

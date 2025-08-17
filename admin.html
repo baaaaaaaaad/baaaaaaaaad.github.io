@@ -1,0 +1,52 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>管理</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+<header>
+  <div>
+    <a href="./" id="site-title">My Gist Blog</a>
+    <div class="meta">仅在本地使用 PAT 写入 Gist</div>
+  </div>
+  <div class="controls">
+    <input id="pat" type="text" placeholder="输入 PAT（仅 gist 权限）">
+    <button id="pat-save">保存到本地</button>
+    <button id="pat-clear">清除</button>
+  </div>
+</header>
+<main>
+  <section>
+    <h2>新建/编辑文章</h2>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      <label>标题<input id="title" type="text"></label>
+      <label>Slug<input id="slug" type="text" placeholder="留空自动生成"></label>
+      <label>标签（逗号分隔）<input id="tags" type="text"></label>
+      <label>状态<select id="status"><option value="published">published</option><option value="draft">draft</option></select></label>
+      <label style="grid-column:1/-1">摘要<input id="summary" type="text"></label>
+      <label style="grid-column:1/-1">正文（Markdown）<textarea id="body" rows="16"></textarea></label>
+    </div>
+    <div class="controls" style="margin-top:8px;">
+      <button id="new">新建</button>
+      <button id="save">保存</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>文章列表</h2>
+    <table id="posts" class="table">
+      <thead>
+        <tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+<div id="toast"></div>
+<script type="module" src="./js/admin.js"></script>
+</body>
+</html>
