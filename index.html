@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hone Hone Clock (纯CSS动画)</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #222;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .clock {
+      font-size: 8vw; /* 响应式字体大小 */
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.2em;
+    }
+
+    /* 单个字符样式 */
+    .char {
+      display: inline-block;
+      /* 开启3D变换，增强摇摆立体感 */
+      transform-origin: bottom center;
+      animation: swing 2s infinite ease-in-out;
+    }
+
+    /* 摇摆动画：左右旋转角度变化 */
+    @keyframes swing {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    /* 为每个字符设置随机动画延迟和持续时间（模拟不规则晃动） */
+    .char:nth-child(1) { animation-delay: 0.1s; animation-duration: 1.8s; }
+    .char:nth-child(2) { animation-delay: 0.3s; animation-duration: 2.2s; }
+    .char:nth-child(3) { animation-delay: 0.5s; animation-duration: 1.6s; } /* 冒号 */
+    .char:nth-child(4) { animation-delay: 0.2s; animation-duration: 2.0s; }
+    .char:nth-child(5) { animation-delay: 0.4s; animation-duration: 1.9s; }
+    .char:nth-child(6) { animation-delay: 0.6s; animation-duration: 2.1s; } /* 冒号 */
+    .char:nth-child(7) { animation-delay: 0.3s; animation-duration: 1.7s; }
+    .char:nth-child(8) { animation-delay: 0.7s; animation-duration: 2.3s; }
+  </style>
+</head>
+<body>
+  <div class="clock" id="clock"></div>
+
+  <script>
+    // 实时更新时间并拆分字符
+    function updateClock() {
+      const now = new Date();
+      // 格式化时间为 HH:MM:SS
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hours}:${minutes}:${seconds}`;
+
+      // 将每个字符用<span class="char">包裹，实现单独动画
+      const clockEl = document.getElementById('clock');
+      clockEl.innerHTML = timeStr.split('').map(char => 
+        `<span class="char">${char}</span>`
+      ).join('');
+    }
+
+    // 初始化并每秒更新一次
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
