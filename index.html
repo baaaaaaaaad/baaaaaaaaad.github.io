@@ -4,23 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hone Hone Clock (纯CSS动画)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --bg-color: #fff;
+      --text-color: #222;
+    }
+
+    body.dark-mode {
+      --bg-color: #222;
+      --text-color: #fff;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #222;
+      background: var(--bg-color);
       font-family: 'Arial', sans-serif;
+      transition: background-color 0.3s ease;
     }
 
     .clock {
       font-size: 8vw; /* 响应式字体大小 */
       font-weight: bold;
-      color: #fff;
+      color: var(--text-color);
       letter-spacing: 0.2em;
     }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    body:not(.dark-mode) .theme-toggle {
+      background-color: #ddd;
+      color: #333;
+    }
+
+    .light-icon, .dark-icon {
+      font-size: 16px;
+    }
+    body.dark-mode .light-icon { display: none; }
+    body:not(.dark-mode) .dark-icon { display: none; }
 
     /* 单个字符样式 */
     .char {
@@ -49,6 +86,7 @@
 </head>
 <body>
   <div class="clock" id="clock"></div>
+  <button id="theme-toggle" class="theme-toggle"><i class="fas fa-sun light-icon"></i><i class="fas fa-moon dark-icon"></i></button>
 
   <script>
     // 实时更新时间并拆分字符
@@ -62,7 +100,7 @@
 
       // 将每个字符用<span class="char">包裹，实现单独动画
       const clockEl = document.getElementById('clock');
-      clockEl.innerHTML = timeStr.split('').map(char => 
+      clockEl.innerHTML = timeStr.split('').map(char =>
         `<span class="char">${char}</span>`
       ).join('');
     }
@@ -70,6 +108,32 @@
     // 初始化并每秒更新一次
     updateClock();
     setInterval(updateClock, 1000);
+
+    // 主题切换功能
+    function setupThemeToggle() {
+      const toggleButton = document.getElementById('theme-toggle');
+      const body = document.body;
+
+      // 检查本地存储中的主题偏好
+      if (localStorage.getItem('theme') === 'dark' ||
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        body.classList.add('dark-mode');
+      }
+
+      toggleButton.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+
+        // 保存主题偏好到本地存储
+        if (body.classList.contains('dark-mode')) {
+          localStorage.setItem('theme', 'dark');
+        } else {
+          localStorage.setItem('theme', 'light');
+        }
+      });
+    }
+
+    // 初始化主题切换
+    setupThemeToggle();
   </script>
 </body>
 </html>
