@@ -342,11 +342,13 @@
             const rect = this.getBoundingClientRect();
             const nextSibling = this.nextElementSibling;
             const isDraggedAfter = draggedItem.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_PRECEDING;
-            const mouseY = e.clientY - rect.top;
 
-            if (mouseY < rect.height / 2 && isDraggedAfter) {
+            const mouseX = e.clientX - rect.left;
+
+            // 如果鼠标位置在当前元素左半部分, 且拖拽元素在当前元素之后则将拖拽元素插入到当前元素之前
+            if (mouseX < rect.width / 2 && isDraggedAfter) {
               container.insertBefore(draggedItem, this);
-            } else if (mouseY >= rect.height / 2 && !isDraggedAfter) {
+            } else if (mouseX >= rect.width / 2 && !isDraggedAfter) {
               container.insertBefore(draggedItem, nextSibling);
             }
           }
@@ -370,7 +372,7 @@
       setTimeout(() => searchInput.select(), 0);
       const query = encodeURIComponent(searchInput.value.trim());
 
-      // if (!query) return; // 不执行空搜索
+      if (!query) return; // 不执行空搜索
 
       let url = '';
       switch(engine) {
