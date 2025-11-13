@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>baaaaaaaaad(9A认证)</title>
+  <link rel="icon" href="res/icon/capitalism.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -46,7 +47,63 @@
       font-weight: bold;
       color: var(--text-color);
       letter-spacing: 2px;
+      margin-bottom: 20px;
     }
+
+    .search-container {
+      width: 90%;
+      max-width: 800px;
+      margin: 0 auto 0 -1px;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--bg-color);
+      border: 1px solid #ddd;
+      border-radius: 30px;
+      padding: 8px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      gap: 10px;
+      width: 100%;
+    }
+
+    body.dark-mode .search-bar {
+      border-color: #666;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 8px 15px;
+      font-size: 16px;
+      color: var(--text-color);
+    }
+
+    .search-engines {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-engine-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+      margin-left: 5px;
+    }
+
+    .search-engine-icon:hover {
+      transform: scale(1.1);
+    }
+
 
     .theme-toggle {
       position: fixed;
@@ -100,12 +157,30 @@
     .char-jump-small { animation: jump-small 0.5s ease-in-out; }
     .char-jump-medium { animation: jump-medium 0.5s ease-in-out; }
     .char-jump-large { animation: jump-large 0.5s ease-in-out; }
+
+    .content-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="clock" id="clock"></div>
-  <button id="theme-toggle" class="theme-toggle"><i class="fas fa-sun light-icon"></i><i class="fas fa-moon dark-icon"></i></button>
-
+    <div class="content-container">
+        <div class="clock" id="clock"></div>
+        <div class="search-container">
+            <div class="search-bar">
+            <input type="text" placeholder="搜索..." class="search-input">
+            <div class="search-engines">
+                <a id="google-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')"><img src="res/icon/google-color.svg" alt="Google" style="width: 36px; height: 36px;"></a>
+                <a id="bing-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')"><img src="res/icon/bing-color.svg" alt="Bing" style="width: 36px; height: 36px;"></a>
+                  <a id="baidu-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
+            </div>
+            </div>
+        </div>
+        <button id="theme-toggle" class="theme-toggle"><i class="fas fa-sun light-icon"></i><i class="fas fa-moon dark-icon"></i></button>
+    </div>
   <script>
     // 存储上一次的时间字符串
     let prevTimeStr = '';
@@ -188,6 +263,29 @@
 
     // 初始化主题切换
     setupThemeToggle();
+
+    // 搜索功能
+    function searchWithEngine(engine) {
+      const searchInput = document.querySelector('.search-input');
+      const query = encodeURIComponent(searchInput.value.trim());
+
+      if (!query) return; // 不执行空搜索
+
+      let url = '';
+      switch(engine) {
+        case 'google':
+          url = `https://www.google.com/search?q=${query}`;
+          break;
+        case 'bing':
+          url = `https://www.bing.com/search?q=${query}`;
+          break;
+        case 'baidu':
+          url = `https://www.baidu.com/s?wd=${query}`;
+          break;
+      }
+
+      window.open(url, '_blank');
+    }
   </script>
 </body>
 </html>
