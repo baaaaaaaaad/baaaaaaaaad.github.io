@@ -173,9 +173,9 @@
             <div class="search-bar">
             <input type="text" placeholder="搜索..." class="search-input">
             <div class="search-engines">
-                <a id="google-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')"><img src="res/icon/google-color.svg" alt="Google" style="width: 36px; height: 36px;"></a>
+                <a id="baidu-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
                 <a id="bing-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')"><img src="res/icon/bing-color.svg" alt="Bing" style="width: 36px; height: 36px;"></a>
-                  <a id="baidu-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
+                <a id="google-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')"><img src="res/icon/google-color.svg" alt="Google" style="width: 36px; height: 36px;"></a>
             </div>
             </div>
         </div>
@@ -267,9 +267,11 @@
     // 搜索功能
     function searchWithEngine(engine) {
       const searchInput = document.querySelector('.search-input');
+      // 选中搜索框文字，使用setTimeout确保元素可交互
+      setTimeout(() => searchInput.select(), 0);
       const query = encodeURIComponent(searchInput.value.trim());
 
-      if (!query) return; // 不执行空搜索
+      // if (!query) return; // 不执行空搜索
 
       let url = '';
       switch(engine) {
