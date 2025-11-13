@@ -191,7 +191,7 @@
         <div class="clock" id="clock"></div>
         <div class="search-container">
             <div class="search-bar">
-            <input type="text" placeholder="搜索..." class="search-input">
+            <input type="text" id="search-input" placeholder="搜索..." class="search-input">
             <div class="search-engines" id="searchEnginesContainer">
                 <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')"><img src="res/icon/bing-color.svg" alt="Bing" style="width: 36px; height: 36px;"></a>
                 <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
@@ -286,6 +286,18 @@
 
     // 初始化拖拽排序
     setupDragAndDrop();
+
+    // 添加搜索框回车事件监听
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstEngine = document.querySelector('#searchEnginesContainer .search-engine-icon');
+        if (firstEngine) {
+          const engineName = firstEngine.id.split('-')[0];
+          searchWithEngine(engineName);
+        }
+      }
+    });
 
     // 拖拽排序功能
     function setupDragAndDrop() {
