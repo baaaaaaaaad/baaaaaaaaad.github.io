@@ -104,6 +104,26 @@
       transform: scale(1.1);
     }
 
+    /* 拖拽排序样式 */
+    .search-engines {
+      display: flex;
+      gap: 10px;
+      min-height: 40px;
+    }
+
+    .search-engine-icon {
+      cursor: move;
+      transition: all 0.2s ease;
+    }
+
+    .search-engine-icon.dragging {
+      opacity: 0.5;
+      transform: scale(1.2);
+    }
+
+    .search-engine-icon.drag-over {
+      border: 2px dashed #444;
+    }
 
     .theme-toggle {
       position: fixed;
@@ -172,10 +192,10 @@
         <div class="search-container">
             <div class="search-bar">
             <input type="text" placeholder="搜索..." class="search-input">
-            <div class="search-engines">
-                <a id="baidu-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
-                <a id="bing-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')"><img src="res/icon/bing-color.svg" alt="Bing" style="width: 36px; height: 36px;"></a>
-                <a id="google-search" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')"><img src="res/icon/google-color.svg" alt="Google" style="width: 36px; height: 36px;"></a>
+            <div class="search-engines" id="searchEnginesContainer">
+                <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')"><img src="res/icon/bing-color.svg" alt="Bing" style="width: 36px; height: 36px;"></a>
+                <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')"><img src="res/icon/baidu-color.svg" alt="Baidu" style="width: 36px; height: 36px;"></a>
+                <a id="google-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')"><img src="res/icon/google-color.svg" alt="Google" style="width: 36px; height: 36px;"></a>
             </div>
             </div>
         </div>
@@ -263,6 +283,73 @@
 
     // 初始化主题切换
     setupThemeToggle();
+
+    // 初始化拖拽排序
+    setupDragAndDrop();
+
+    // 拖拽排序功能
+    function setupDragAndDrop() {
+      const container = document.getElementById('searchEnginesContainer');
+      const items = container.querySelectorAll('.search-engine-icon');
+      let draggedItem = null;
+
+      // 加载保存的顺序
+      const savedOrder = localStorage.getItem('searchEngineOrder');
+      if (savedOrder) {
+        const order = savedOrder.split(',');
+        order.forEach(id => {
+          const item = document.getElementById(id);
+          if (item) container.appendChild(item);
+        });
+      }
+
+      items.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+          draggedItem = this;
+          setTimeout(() => this.classList.add('dragging'), 0);
+          e.dataTransfer.setData('text/plain', this.id);
+        });
+
+        item.addEventListener('dragend', function() {
+          this.classList.remove('dragging');
+          draggedItem = null;
+          container.querySelectorAll('.search-engine-icon').forEach(el => {
+            el.classList.remove('drag-over');
+          });
+
+          // 保存新顺序
+          const order = Array.from(container.querySelectorAll('.search-engine-icon'))
+            .map(item => item.id);
+          localStorage.setItem('searchEngineOrder', order.join(','));
+        });
+
+        item.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          this.classList.add('drag-over');
+          if (draggedItem !== this) {
+            const rect = this.getBoundingClientRect();
+            const nextSibling = this.nextElementSibling;
+            const isDraggedAfter = draggedItem.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_PRECEDING;
+            const mouseY = e.clientY - rect.top;
+
+            if (mouseY < rect.height / 2 && isDraggedAfter) {
+              container.insertBefore(draggedItem, this);
+            } else if (mouseY >= rect.height / 2 && !isDraggedAfter) {
+              container.insertBefore(draggedItem, nextSibling);
+            }
+          }
+        });
+
+        item.addEventListener('dragleave', function() {
+          this.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', function(e) {
+          e.preventDefault();
+          this.classList.remove('drag-over');
+        });
+      });
+    }
 
     // 搜索功能
     function searchWithEngine(engine) {
