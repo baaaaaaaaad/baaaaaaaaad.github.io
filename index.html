@@ -299,6 +299,16 @@
       }
     });
 
+    // 添加搜索框输入监听以切换搜索图标光标样式
+    document.getElementById('search-input').addEventListener('input', function() {
+      const searchIcons = document.querySelectorAll('.search-engine-icon');
+      const hasText = this.value.trim() !== '';
+
+      searchIcons.forEach(icon => {
+        icon.style.cursor = hasText ? 'pointer' : '';
+      });
+    });
+
     // 拖拽排序功能
     function setupDragAndDrop() {
       const container = document.getElementById('searchEnginesContainer');
@@ -317,6 +327,12 @@
 
       items.forEach(item => {
         item.addEventListener('dragstart', function(e) {
+          // 检查搜索框是否有输入内容
+          const searchInput = document.getElementById('search-input');
+          if (searchInput && searchInput.value.trim() !== '') {
+            e.preventDefault();
+            return;
+          }
           draggedItem = this;
           setTimeout(() => this.classList.add('dragging'), 0);
           e.dataTransfer.setData('text/plain', this.id);
