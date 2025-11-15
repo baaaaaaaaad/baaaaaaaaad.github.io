@@ -1,6 +1,12 @@
 :root {
   --bg-color: #fff;
   --text-color: #222;
+  --border-light: #ddd;
+  --border-dark: #666;
+  --theme-dark-bg: #444;
+  --theme-light-bg: #ddd;
+  --theme-dark-text: #fff;
+  --theme-light-text: #333;
 }
 
 body.dark-mode {
@@ -8,39 +14,47 @@ body.dark-mode {
   --text-color: #fff;
 }
 
+/* 基础布局 */
+body, .content-container, .search-bar, .search-engines, .theme-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  display: flex;
   justify-content: center;
-  align-items: center;
   background: var(--bg-color);
-  font-family: 'Arial', sans-serif;
+  font-family: Arial, sans-serif;
 }
 
-/* 多种弹跳动画：不同高度的垂直位移变化 */
-@keyframes jump-small {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-@keyframes jump-medium {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-@keyframes jump-large {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-30px); }
+.content-container {
+  flex-direction: column;
+  gap: 20px;
 }
 
+.search-bar, .search-engines, .theme-toggle-container {
+  gap: 10px;
+}
+
+.theme-toggle-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  flex-direction: column;
+}
+
+/* 时钟样式 */
 .clock {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 8vw; /* 响应式字体大小 */
+  font-family: 'Courier New', monospace;
+  font-size: 8vw;
   font-weight: bold;
   color: var(--text-color);
   letter-spacing: 2px;
   margin-bottom: 20px;
 }
 
+/* 搜索区域 */
 .search-container {
   width: 90%;
   max-width: 800px;
@@ -48,19 +62,16 @@ body {
 }
 
 .search-bar {
-  display: flex;
-  align-items: center;
   background: var(--bg-color);
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-light);
   border-radius: 30px;
   padding: 8px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  gap: 10px;
   width: 100%;
 }
 
 body.dark-mode .search-bar {
-  border-color: #666;
+  border-color: var(--border-dark);
 }
 
 .search-input {
@@ -74,9 +85,12 @@ body.dark-mode .search-bar {
 }
 
 .search-engines {
-  display: flex;
-  gap: 10px;
   min-height: 40px;
+}
+
+/* 图标样式 */
+.search-engine-icon, .article-icon i {
+  transition: transform 0.2s ease;
 }
 
 .search-engine-icon {
@@ -88,12 +102,11 @@ body.dark-mode .search-bar {
   justify-content: center;
   color: white;
   text-decoration: none;
-  transition: transform 0.2s ease;
   margin-left: 5px;
   cursor: move;
 }
 
-.search-engine-icon:hover {
+.search-engine-icon:hover, .article-icon:hover i {
   transform: scale(1.1);
 }
 
@@ -106,41 +119,32 @@ body.dark-mode .search-bar {
   border: 2px dashed #444;
 }
 
-.theme-toggle-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
+/* 主题切换 */
 .theme-toggle {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background-color: #444;
-  color: white;
+  background-color: var(--theme-dark-bg);
+  color: var(--theme-dark-text);
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
 }
 
 body:not(.dark-mode) .theme-toggle {
-  background-color: #ddd;
-  color: #333;
+  background-color: var(--theme-light-bg);
+  color: var(--theme-light-text);
 }
 
 .light-icon, .dark-icon {
   font-size: 16px;
 }
 
-body.dark-mode .light-icon { display: none; }
-body:not(.dark-mode) .dark-icon { display: none; }
+body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
+  display: none;
+}
 
-
-/* 文章图标样式 */
+/* 文章图标 */
 .article-icon {
   width: auto;
   height: auto;
@@ -152,34 +156,28 @@ body:not(.dark-mode) .dark-icon { display: none; }
 .article-icon i {
   font-size: 24px;
   color: var(--text-color);
-  transition: transform 0.2s ease;
 }
 
-.article-icon:hover i {
-  transform: scale(1.1);
+/* 动画定义 */
+@keyframes jump-small, jump-medium, jump-large {
+  0%, 100% { transform: translateY(0); }
 }
 
-body.dark-mode .article-icon i {
-  color: var(--text-color);
-}
+@keyframes jump-small { 50% { transform: translateY(-10px); } }
+@keyframes jump-medium { 50% { transform: translateY(-20px); } }
+@keyframes jump-large { 50% { transform: translateY(-30px); } }
 
-/* 单个字符样式 */
+/* 字符动画 */
 .char {
   display: inline-block;
   transform-origin: bottom center;
 }
 
-/* 静态样式：无动画 */
-.char-static {}
-
-/* 动画类：仅在数值变化时添加 */
-.char-jump-small { animation: jump-small 0.5s ease-in-out; }
-.char-jump-medium { animation: jump-medium 0.5s ease-in-out; }
-.char-jump-large { animation: jump-large 0.5s ease-in-out; }
-
-.content-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+.char-jump-small, .char-jump-medium, .char-jump-large {
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
 }
+
+.char-jump-small { animation-name: jump-small; }
+.char-jump-medium { animation-name: jump-medium; }
+.char-jump-large { animation-name: jump-large; }
