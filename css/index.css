@@ -1,12 +1,14 @@
 :root {
   --bg-color: #fff;
   --text-color: #222;
-  --border-light: #ddd;
-  --border-dark: #666;
-  --theme-dark-bg: #444;
+
+  --theme-dark-bg: #222;
+  --border-dark: #000;
+  --theme-dark-text: #ddd;
+
   --theme-light-bg: #ddd;
-  --theme-dark-text: #fff;
-  --theme-light-text: #333;
+  --border-light: #fff;
+  --theme-light-text: #222;
 }
 
 body.dark-mode {
@@ -66,12 +68,15 @@ body {
   border: 1px solid var(--border-light);
   border-radius: 30px;
   padding: 8px 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   width: 100%;
+  box-shadow: rgba(0, 0, 0, 0.5) -4px 4px 2px 2px;
+  transition: box-shadow 1s ease;
 }
 
 body.dark-mode .search-bar {
   border-color: var(--border-dark);
+  box-shadow: rgba(255, 255, 255, 0.1) -4px 4px 5px 2px;
+  transition: box-shadow 1s ease;
 }
 
 .search-input {
