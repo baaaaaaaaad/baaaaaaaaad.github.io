@@ -11,16 +11,19 @@
   --theme-light-text: #222;
 }
 
+
 body.dark-mode {
   --bg-color: #222;
   --text-color: #fff;
 }
+
 
 /* 基础布局 */
 body, .content-container, .search-bar, .search-engines, .theme-toggle-container {
   display: flex;
   align-items: center;
 }
+
 
 body {
   margin: 0;
@@ -30,14 +33,17 @@ body {
   font-family: Arial, sans-serif;
 }
 
+
 .content-container {
   flex-direction: column;
   gap: 20px;
 }
 
+
 .search-bar, .search-engines, .theme-toggle-container {
   gap: 10px;
 }
+
 
 .theme-toggle-container {
   position: fixed;
@@ -45,6 +51,7 @@ body {
   right: 20px;
   flex-direction: column;
 }
+
 
 /* 时钟样式 */
 .clock {
@@ -56,12 +63,14 @@ body {
   margin-bottom: 20px;
 }
 
+
 /* 搜索区域 */
 .search-container {
   width: 90%;
   max-width: 800px;
   margin: 0 auto 0 -1px;
 }
+
 
 .search-bar {
   background: var(--bg-color);
@@ -73,11 +82,13 @@ body {
   transition: box-shadow 1s ease;
 }
 
+
 body.dark-mode .search-bar {
   border-color: var(--border-dark);
   box-shadow: rgba(255, 255, 255, 0.1) -4px 4px 5px 2px;
   transition: box-shadow 1s ease;
 }
+
 
 .search-input {
   flex: 1;
@@ -89,14 +100,17 @@ body.dark-mode .search-bar {
   color: var(--text-color);
 }
 
+
 .search-engines {
   min-height: 40px;
 }
+
 
 /* 图标样式 */
 .search-engine-icon, .article-icon i {
   transition: transform 0.2s ease;
 }
+
 
 .search-engine-icon {
   width: 32px;
@@ -111,18 +125,22 @@ body.dark-mode .search-bar {
   cursor: move;
 }
 
+
 .search-engine-icon:hover, .article-icon:hover i {
   transform: scale(1.1);
 }
+
 
 .search-engine-icon.dragging {
   opacity: 0.5;
   transform: scale(1.2);
 }
 
+
 .search-engine-icon.drag-over {
   border: 2px dashed #444;
 }
+
 
 /* 主题切换 */
 .theme-toggle {
@@ -136,18 +154,22 @@ body.dark-mode .search-bar {
   transition: background-color 0.3s ease;
 }
 
+
 body:not(.dark-mode) .theme-toggle {
   background-color: var(--theme-light-bg);
   color: var(--theme-light-text);
 }
 
+
 .light-icon, .dark-icon {
   font-size: 16px;
 }
 
+
 body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
   display: none;
 }
+
 
 /* 文章图标 */
 .article-icon {
@@ -158,19 +180,28 @@ body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
   cursor: pointer;
 }
 
-.article-icon i {
-  font-size: 24px;
+
+.search-engine-icon i, .article-icon i {
   color: var(--text-color);
 }
+.article-icon i {
+  font-size: 24px;
+}
+
 
 /* 动画定义 */
 @keyframes jump-small, jump-medium, jump-large {
   0%, 100% { transform: translateY(0); }
+
 }
 
+
 @keyframes jump-small { 50% { transform: translateY(-10px); } }
+
 @keyframes jump-medium { 50% { transform: translateY(-20px); } }
+
 @keyframes jump-large { 50% { transform: translateY(-30px); } }
+
 
 /* 字符动画 */
 .char {
@@ -178,11 +209,15 @@ body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
   transform-origin: bottom center;
 }
 
+
 .char-jump-small, .char-jump-medium, .char-jump-large {
   animation-duration: 0.5s;
   animation-timing-function: ease-in-out;
 }
 
+
 .char-jump-small { animation-name: jump-small; }
+
 .char-jump-medium { animation-name: jump-medium; }
+
 .char-jump-large { animation-name: jump-large; }
