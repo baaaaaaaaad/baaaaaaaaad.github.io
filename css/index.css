@@ -1,36 +1,10 @@
-:root {
-  --bg-color: #fff;
-  --text-color: #222;
 
-  --theme-dark-bg: #222;
-  --border-dark: #000;
-  --theme-dark-text: #ddd;
-
-  --theme-light-bg: #ddd;
-  --border-light: #fff;
-  --theme-light-text: #222;
-}
-
-
-body.dark-mode {
-  --bg-color: #222;
-  --text-color: #fff;
-}
 
 
 /* 基础布局 */
-body, .content-container, .search-bar, .search-engines, .navigation-container {
+body, .content-container, .search-bar, .search-engines {
   display: flex;
   align-items: center;
-}
-
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  justify-content: center;
-  background: var(--bg-color);
-  font-family: Arial, sans-serif;
 }
 
 
@@ -40,17 +14,11 @@ body {
 }
 
 
-.search-bar, .search-engines, .navigation-container {
+.search-bar, .search-engines {
   gap: 10px;
 }
 
 
-.navigation-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  flex-direction: column;
-}
 
 
 /* 时钟样式 */
@@ -107,7 +75,7 @@ body.dark-mode .search-bar {
 
 
 /* 图标样式 */
-.search-engine-icon, .navigation-icon {
+.search-engine-icon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -122,7 +90,7 @@ body.dark-mode .search-bar {
 }
 
 
-.search-engine-icon:hover, .navigation-icon:hover {
+.search-engine-icon:hover {
   transform: scale(1.1);
 }
 
@@ -138,48 +106,8 @@ body.dark-mode .search-bar {
 }
 
 
-/* 主题切换 */
-.navigation-icon, .theme-toggle {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--theme-dark-bg);
-  color: var(--theme-dark-text);
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-}
 
-
-body:not(.dark-mode) .theme-toggle{
-  background-color: var(--theme-light-bg);
-  color: var(--theme-light-text);
-}
-
-
-.light-icon, .dark-icon {
-  font-size: 16px;
-}
-
-
-body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
-  display: none;
-}
-
-
-/* 文章图标 */
-.navigation-icon {
-  width: auto;
-  height: auto;
-  background: transparent;
-  margin: 0;
-  cursor: pointer;
-}
-.navigation-icon i {
-  font-size: 24px;
-}
-
-.search-engine-icon i, .navigation-icon i {
+.search-engine-icon i {
   color: var(--text-color);
 }
 
