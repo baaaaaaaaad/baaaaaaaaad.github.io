@@ -7,9 +7,11 @@
   <link rel="icon" href="res/icon/capitalism.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/article.css">
 </head>
 <body>
-    <div class="content-container">
+    <div class="content-container" id="main-page">
         <div class="clock" id="clock"></div>
         <div class="search-container">
             <div class="search-bar">
@@ -25,8 +27,50 @@
             <button id="theme-toggle" class="navigation-icon"><i class="fas fa-sun light-icon"></i><i class="fas fa-moon dark-icon"></i></button>
             <a href="index.html" class="navigation-icon" title="主页"><i class="fas fa-home"></i></a>
             <a href="article.html" class="navigation-icon" title="文章列表"><i class="fas fa-newspaper"></i></a>
+            <button id="toggle-presentation" class="navigation-icon" title="演示模式"><i class="fas fa-play-circle"></i></button>
         </div>
     </div>
+
+    <!-- 幻灯片页面 -->
+    <div class="presentation-container" id="presentation-page" style="display: none;">
+        <div class="slide-content">
+            <!-- 这里是空白幻灯片页面，可根据需要添加内容 -->
+            <main>
+                <ul id="post-list"></ul>
+                <div class="controls">
+                    <button id="prev">上一页</button>
+                    <div id="pagination" class="meta"></div>
+                    <button id="next">下一页</button>
+                </div>
+            </main>
+            <script type="module" src="./js/list.js"></script>
+        </div>
+        <div class="slide-navigation">
+            <button id="back-to-main" class="navigation-icon" title="返回主页"><i class="fas fa-arrow-left"></i></button>
+        </div>
+    </div>
+
   <script src="js/index.js"></script>
+  <script>
+    // 添加幻灯片页面切换功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainPage = document.getElementById('main-page');
+        const presentationPage = document.getElementById('presentation-page');
+        const toggleBtn = document.getElementById('toggle-presentation');
+        const backBtn = document.getElementById('back-to-main');
+
+        // 切换到幻灯片页面
+        toggleBtn.addEventListener('click', function() {
+            mainPage.style.display = 'none';
+            presentationPage.style.display = 'flex';
+        });
+
+        // 返回主页面
+        backBtn.addEventListener('click', function() {
+            presentationPage.style.display = 'none';
+            mainPage.style.display = 'flex';
+        });
+    });
+  </script>
 </body>
 </html>

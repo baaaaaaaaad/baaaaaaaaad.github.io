@@ -184,6 +184,33 @@ body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
 }
 
 
+/* 幻灯片页面样式 */
+.presentation-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.slide-content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.slide-navigation {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+
+
 /* 动画定义 */
 @keyframes jump-small, jump-medium, jump-large {
   0%, 100% { transform: translateY(0); }
