@@ -202,6 +202,114 @@ body.dark-mode .light-icon, body:not(.dark-mode) .dark-icon {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.slide-content main {
+  max-width: 900px;
+  width: 100%;
+}
+
+/* 幻灯片页面文章列表样式 */
+.slide-content #post-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px 0;
+  max-width: 100%;
+}
+
+.slide-content #post-list li {
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-mode .slide-content #post-list li {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.slide-content #post-list li:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .slide-content #post-list li:hover {
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+.slide-content #post-list a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-size: 28px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+  transition: color 0.3s ease;
+}
+
+.slide-content #post-list a:hover {
+  color: #007bff;
+}
+
+.slide-content #post-list .meta {
+  display: block;
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+body.dark-mode .slide-content #post-list .meta {
+  color: #aaa;
+}
+
+.slide-content #post-list .summary {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin: 0;
+}
+
+/* 幻灯片页面控制按钮样式 */
+.slide-content .controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.slide-content .controls button {
+  padding: 12px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--theme-dark-bg);
+  color: var(--theme-dark-text);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+body:not(.dark-mode) .slide-content .controls button {
+  background: var(--theme-light-bg);
+  color: var(--theme-light-text);
+}
+
+.slide-content .controls button:hover {
+  transform: scale(1.05);
+}
+
+.slide-content .controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.slide-content .controls #pagination {
+  font-size: 18px;
+  color: var(--text-color);
 }
 
 .slide-navigation {
