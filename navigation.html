@@ -1,0 +1,125 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* --bg-color: #fff; */
+            /* --text-color: #222; */
+
+            /* --theme-dark-bg: #222; */
+            /* --border-dark: #000; */
+            /* --theme-dark-text: #ddd; */
+
+            /* --theme-light-bg: #ddd; */
+            /* --border-light: #fff; */
+            /* --theme-light-text: #222; */
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            justify-content: center;
+            background: var(--bg-color);
+            font-family: Arial, sans-serif;
+        }
+
+        body.dark-mode {
+            --bg-color: #222;
+            --text-color: #fff;
+        }
+
+        .light-icon,
+        .dark-icon {
+            font-size: 16px;
+        }
+
+        body:not(.dark-mode) .theme-toggle {
+            background-color: var(--theme-light-bg);
+            color: var(--theme-light-text);
+        }
+
+        body.dark-mode .light-icon,
+        body:not(.dark-mode) .dark-icon {
+            display: none;
+        }
+
+        i {
+            color: var(--text-color);
+        }
+
+        .search-engine-icon i,
+        .navigation-icon i {
+            color: var(--text-color);
+        }
+
+        .navigation-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .navigation-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            flex-direction: column;
+        }
+
+        /* 图标样式 */
+        .search-engine-icon,
+        .navigation-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            margin-left: 5px;
+            cursor: move;
+            transition: transform 0.2s ease;
+        }
+
+        /* 主题切换 */
+        .navigation-icon,
+        .theme-toggle {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--theme-dark-bg);
+            color: var(--theme-dark-text);
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-engine-icon:hover,
+        .navigation-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* 文章图标 */
+        .navigation-icon {
+            width: auto;
+            height: auto;
+            background: transparent;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .navigation-icon i {
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navigation-container" style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="theme-toggle" class="navigation-icon"><i class="fas fa-sun light-icon"></i><i class="fas fa-moon dark-icon"></i></button>
+        <a href="index.html" class="navigation-icon" title="主页"><i class="fas fa-home"></i></a>
+        <a href="article.html" class="navigation-icon" title="文章列表"><i class="fas fa-newspaper"></i></a>
+    </div>
+</body>
+
+</html>
