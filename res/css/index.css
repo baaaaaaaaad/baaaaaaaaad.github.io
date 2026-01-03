@@ -61,6 +61,8 @@ body {
     letter-spacing: 2px;
     margin-bottom: 20px;
     text-shadow: 2px 2px 4px var(--shadow-light);
+    text-align: center;
+    width: 100%;
 }
 
 /* 搜索区域 */

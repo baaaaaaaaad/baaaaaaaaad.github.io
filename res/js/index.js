@@ -1179,7 +1179,7 @@ function togglePage(pageName) {
     });
 
     // 如果是从文章详情页切换回主页，清空URL参数
-    if (pageName === 'home-page') {
+    if (pageName === 'main-page') {
         const url = new URL(window.location);
         url.search = '';
         window.history.pushState({}, document.title, url);
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         // 否则默认显示主页
-        togglePage('home-page');
+        togglePage('main-page');
     }
 
     // 导航按钮事件监听
@@ -1247,6 +1247,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.removeEventListener('animationend', handler);
                 });
             });
+        });
+    }
+
+    // 添加页面切换按钮事件监听
+    const pageToggle = document.getElementById('page-toggle');
+    if (pageToggle) {
+        pageToggle.addEventListener('click', function() {
+            // 切换到文章列表页面
+            togglePage('article-page');
         });
     }
 });
