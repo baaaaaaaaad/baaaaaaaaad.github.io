@@ -879,6 +879,7 @@ mainAdmin().catch(err => alert(err.message));
 // js/index.js 和 js/main.js 合并后的代码（时钟显示与动画、主题切换、搜索框功能、搜索引擎图标拖拽排序）
 // 存储上一次的时间字符串，用于比较时间是否变化
 let prevTimeStr = '';
+let prevDateStr = '';
 
 /**
  * 实时更新时间并拆分字符进行动画处理
@@ -941,9 +942,36 @@ function updateClock() {
     }
   }
 
+  // 更新日期显示
+  updateDate(now);
+
   // 更新上一次时间记录
   prevTimeStr = timeStr;
 }
+
+/**
+ * 更新公历日期显示
+ * @param {Date} date - 当前日期
+ */
+function updateDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const weekDay = weekDays[date.getDay()];
+  const dateStr = `${year}年${month}月${day}日 ${weekDay}`;
+
+  // 只有当日期变化时才更新，避免不必要的DOM操作
+  if (dateStr !== prevDateStr) {
+    const dateEl = document.getElementById('date');
+    if (dateEl) {
+      dateEl.textContent = dateStr;
+    }
+    prevDateStr = dateStr;
+  }
+}
+
+
 
 /**
  * 初始化时钟
