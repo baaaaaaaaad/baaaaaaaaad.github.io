@@ -921,9 +921,19 @@ function updateClock() {
         // 如果字符变化且不是冒号位置（2和5是冒号位置）
         if (char !== prevChars[index] && index !== 2 && index !== 5) {
           // 移除之前可能存在的动画类
-          clockChars[index].classList.remove('char-jump-small', 'char-jump-medium', 'char-jump-large');
-          // 为不同位置的字符应用不同高度的弹跳动画
-          const animationType = ['char-jump-small', 'char-jump-medium', 'char-jump-large'][index % 3];
+          clockChars[index].classList.remove('char-jump-small', 'char-jump-medium', 'char-jump-large', 'char-jump-tiny', 'char-jump-extralarge', 'char-jump-xlarge');
+          // 为不同位置的字符应用不同高度的弹跳动画，从左到右高度依次增加
+          let animationType;
+          if (index < 2) {
+            // 小时部分（位置0-1）
+            animationType = index === 0 ? 'char-jump-tiny' : 'char-jump-small';
+          } else if (index < 5) {
+            // 分钟部分（位置3-4）
+            animationType = index === 3 ? 'char-jump-medium' : 'char-jump-large';
+          } else {
+            // 秒部分（位置6-7）
+            animationType = index === 6 ? 'char-jump-extralarge' : 'char-jump-xlarge';
+          }
           clockChars[index].classList.add(animationType);
           // 更新字符内容
           clockChars[index].textContent = char;
