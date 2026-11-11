@@ -272,6 +272,12 @@ body {
 }
 
 
+/* 首页默认隐藏搜索框与文章列表按钮，双击主题按钮切换 */
+body:not(.controls-visible) .search-container,
+body:not(.controls-visible) #page-toggle {
+    display: none;
+}
+
 /* 导航容器 */
 .navigation-container {
     position: fixed;

@@ -49,6 +49,8 @@ npx --yes serve .
 - `post.html?slug=...`：文章详情页
 - `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）
 
+首页默认隐藏搜索框与文章列表按钮。单击右上角主题按钮切换主题；双击只切换这两个控件的显示/隐藏，状态保存在本地缓存 `indexControlsVisible`。
+
 ## 结构
 
 ```text

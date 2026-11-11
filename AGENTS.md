@@ -113,6 +113,7 @@ npx --yes serve .
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。CDN 不可用时详情页无法渲染。
 - `index.html` 依赖 CDN 的 Font Awesome 6.4.0（带 integrity），升级时同步更新哈希。
+- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 单击会延迟 250ms 切换主题，双击只切换这两个控件的显隐（`body.controls-visible`），状态存 `localStorage.indexControlsVisible`。不要改回即时 click 处理，否则双击会切换两次主题。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub；若线上看到示例文章，先检查该开关。

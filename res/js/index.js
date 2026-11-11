@@ -424,32 +424,53 @@ function init() {
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', init);
 
+// 首页搜索框与文章列表按钮的显隐状态
+const CONTROLS_VISIBILITY_KEY = 'indexControlsVisible';
+const THEME_CLICK_DELAY = 250;
+
+function setControlsVisible(visible) {
+  document.body.classList.toggle('controls-visible', visible);
+  localStorage.setItem(CONTROLS_VISIBILITY_KEY, visible ? '1' : '0');
+}
+
+function setupControlsVisibility() {
+  if (localStorage.getItem(CONTROLS_VISIBILITY_KEY) === '1') {
+    document.body.classList.add('controls-visible');
+  }
+}
+
+// 尽早应用显隐状态，避免刷新时先显示再隐藏
+setupControlsVisibility();
+
 // 主题切换功能
+function setTheme(theme, persist = true) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark-mode', isDark);
+  if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
 function setupThemeToggle() {
   const themeToggle = document.getElementById('theme-toggle');
   if (!themeToggle) return; // 如果主题切换按钮不存在，直接返回
 
-  const body = document.body;
-
   // 从 localStorage 加载主题设置，如果没有则使用默认主题（light）
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  if (savedTheme === 'dark') {
-    body.classList.add('dark-mode');
-  } else {
-    body.classList.remove('dark-mode');
-  }
+  setTheme(localStorage.getItem('theme') || 'light', false);
 
-  // 添加主题切换事件监听
+  let clickTimer = null;
   themeToggle.addEventListener('click', () => {
-    // 切换body的dark-mode类
-    body.classList.toggle('dark-mode');
-
-    // 将主题偏好保存到本地存储
-    if (body.classList.contains('dark-mode')) {
-      localStorage.setItem('theme', 'dark');
-    } else {
-      localStorage.setItem('theme', 'light');
+    // 双击：只切换搜索框与文章列表按钮的显隐，不切换主题
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      setControlsVisible(!document.body.classList.contains('controls-visible'));
+      return;
     }
+
+    // 单击：延迟执行，等待可能的第二次点击
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark');
+    }, THEME_CLICK_DELAY);
   });
 }
 
