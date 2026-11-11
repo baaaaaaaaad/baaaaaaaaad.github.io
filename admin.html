@@ -18,8 +18,11 @@
   <div>
     <div class="meta">仅在本地使用 PAT 写入 Gist</div>
   </div>
-  <div class="controls">
-    <input id="pat" type="text" placeholder="输入 PAT（仅 gist 权限）">
+  <div class="controls pat-controls">
+    <div class="pat-input-wrapper">
+      <input id="pat" type="password" placeholder="输入 PAT（仅 gist 权限）" autocomplete="off" spellcheck="false">
+      <button id="pat-toggle" class="pat-toggle" type="button" aria-label="显示 PAT" title="显示/隐藏">👁</button>
+    </div>
     <button id="pat-save">保存到本地</button>
     <button id="pat-clear">清除</button>
   </div>

@@ -1060,6 +1060,41 @@ body.admin-page header .controls input {
     min-width: 240px;
 }
 
+body.admin-page .pat-input-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 240px;
+}
+
+body.admin-page .pat-input-wrapper input {
+    width: 100%;
+    min-width: unset;
+    padding-right: 36px;
+}
+
+body.admin-page .pat-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--text-color);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+body.admin-page .pat-toggle:hover,
+body.admin-page .pat-toggle:focus-visible {
+    opacity: 1;
+    outline: none;
+}
+
 body.admin-page #toast {
     position: fixed;
     left: 50%;

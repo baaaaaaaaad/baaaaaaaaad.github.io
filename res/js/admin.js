@@ -231,6 +231,16 @@ function bindToolbar() {
     });
   }
 
+  const patToggle = $('#pat-toggle');
+  if (patToggle && patInput) {
+    patToggle.addEventListener('click', () => {
+      const isHidden = patInput.type === 'password';
+      patInput.type = isHidden ? 'text' : 'password';
+      patToggle.setAttribute('aria-label', isHidden ? '隐藏 PAT' : '显示 PAT');
+      patToggle.textContent = isHidden ? '🙈' : '👁';
+    });
+  }
+
   if (newBtn) {
     newBtn.addEventListener('click', () => {
       editingFilename = null;
