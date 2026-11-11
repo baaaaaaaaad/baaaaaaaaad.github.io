@@ -114,6 +114,9 @@ npx --yes serve .
 - `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。CDN 不可用时详情页无法渲染。
 - `index.html` 依赖 CDN 的 Font Awesome 6.4.0（带 integrity），升级时同步更新哈希。
 - 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 单击会延迟 250ms 切换主题，双击只切换这两个控件的显隐（`body.controls-visible`），状态存 `localStorage.indexControlsVisible`。不要改回即时 click 处理，否则双击会切换两次主题。
+- 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
+- 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
+- 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub；若线上看到示例文章，先检查该开关。
