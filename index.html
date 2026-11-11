@@ -28,9 +28,9 @@
             <div class="search-bar">
                 <input type="text" id="search-input" placeholder="搜索..." class="search-input">
                 <div class="search-engines" id="searchEnginesContainer" role="group" aria-label="搜索引擎选择">
-                    <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('bing')" aria-label="使用Bing搜索"><img src="res/icon/bing-color.svg" alt="Bing" class="search-engine-img"></a>
-                    <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('baidu')" aria-label="使用百度搜索"><img src="res/icon/baidu-color.svg" alt="Baidu" class="search-engine-img"></a>
-                    <a id="google-search" draggable="true" target="_blank" class="search-engine-icon" onclick="searchWithEngine('google')" aria-label="使用Google搜索"><img src="res/icon/google-color.svg" alt="Google" class="search-engine-img"></a>
+                    <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Bing搜索"><img src="res/icon/bing-color.svg" alt="Bing" class="search-engine-img"></a>
+                    <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用百度搜索"><img src="res/icon/baidu-color.svg" alt="Baidu" class="search-engine-img"></a>
+                    <a id="google-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Google搜索"><img src="res/icon/google-color.svg" alt="Google" class="search-engine-img"></a>
                 </div>
             </div>
         </div>
@@ -67,7 +67,7 @@
             </div>
         </main>
     </div>
-    <script src="res/js/index.js" defer></script>
+    <script type="module" src="res/js/index.js"></script>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="res/icon/bing-color.svg" as="image" type="image/svg+xml">
     <link rel="preload" href="res/icon/baidu-color.svg" as="image" type="image/svg+xml">
