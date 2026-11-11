@@ -1,13 +1,8 @@
-
-// js/post.js（文章详情页逻辑）
-// ------------------------------------------------------------
-// 职责：
+// 文章详情页逻辑：
 // 1) 通过 URL ?slug=... 找到对应文章
 // 2) 读取对应 Markdown 文件（通过 Gist raw_url）
 // 3) 解析 YAML Front Matter，提取正文部分
 // 4) 使用 marked + DOMPurify 渲染安全的 HTML
-// ------------------------------------------------------------
-
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 
@@ -50,9 +45,18 @@ function parseFrontMatter(md) {
 }
 
 async function main() {
+  const contentEl = document.querySelector('#content');
+  if (!contentEl) return;
+
   const slug = getQuery('slug');
   if (!slug) {
-    document.querySelector('#content').textContent = '缺少 slug 参数';
+    contentEl.textContent = '缺少 slug 参数';
+    return;
+  }
+
+  // CDN 资源不可用时给出明确提示，而不是直接抛出 ReferenceError
+  if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+    contentEl.textContent = 'Markdown 渲染资源加载失败，请检查网络后刷新。';
     return;
   }
 
@@ -62,20 +66,22 @@ async function main() {
   const postIndex = posts.findIndex(p => p.slug === slug);
   const post = posts[postIndex];
   if (!post) {
-    document.querySelector('#content').textContent = '未找到文章';
+    contentEl.textContent = '未找到文章';
     return;
   }
 
   // 设置标题与元信息
   document.title = `${post.title} - ${CONFIG.SITE_TITLE}`;
-  document.querySelector('h1').textContent = post.title;
-  document.querySelector('#meta').textContent = `${new Date(post.created_at).toLocaleString()} · ${(post.tags || []).join(', ')}`;
+  const h1El = document.querySelector('h1');
+  const metaEl = document.querySelector('#meta');
+  if (h1El) h1El.textContent = post.title;
+  if (metaEl) metaEl.textContent = `${new Date(post.created_at).toLocaleString()} · ${(post.tags || []).join(', ')}`;
 
   // 取 Markdown、解析 Front Matter、渲染 HTML
   const md = await Gist.getPostFile(post.filename);
   const { body } = parseFrontMatter(md);
   const html = DOMPurify.sanitize(marked.parse(body));
-  document.querySelector('#content').innerHTML = html;
+  contentEl.innerHTML = html;
 
   // 设置上一篇和下一篇链接
   const prevPost = posts[postIndex - 1];
@@ -84,13 +90,13 @@ async function main() {
   const prevPostEl = document.querySelector('#prev-post');
   const nextPostEl = document.querySelector('#next-post');
 
-  if (prevPost) {
+  if (prevPost && prevPostEl) {
     prevPostEl.href = `post.html?slug=${encodeURIComponent(prevPost.slug)}`;
     prevPostEl.textContent = `上一篇: ${prevPost.title}`;
     prevPostEl.style.display = '';
   }
 
-  if (nextPost) {
+  if (nextPost && nextPostEl) {
     nextPostEl.href = `post.html?slug=${encodeURIComponent(nextPost.slug)}`;
     nextPostEl.textContent = `下一篇: ${nextPost.title}`;
     nextPostEl.style.display = '';
@@ -99,5 +105,6 @@ async function main() {
 
 main().catch(err => {
   console.error(err);
-  document.querySelector('#content').textContent = `加载失败：${err.message}`;
+  const contentEl = document.querySelector('#content');
+  if (contentEl) contentEl.textContent = `加载失败：${err.message}`;
 });
