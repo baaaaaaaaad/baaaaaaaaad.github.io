@@ -216,7 +216,7 @@ npx --yes serve .
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
-- PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
+- PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。管理页初始化时若检测到已存 PAT，会自动把输入框 `disabled` + 灰化、隐藏眼睛按钮、提示 meta 改为「已在本地」；清除后恢复可编辑。
 - `sw.js` 在根目录以最大 scope 注册，首次安装时预缓存 `STATIC_ASSETS` 中的固定列表；新增静态文件（CSS/JS/icon）时记得把路径加进去。部署更新时改 cache 名 `static-vN` 触发旧缓存淘汰。不要把 POST/PATCH 请求（API 写操作）放进缓存。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub，所有写操作只改内存，刷新后丢失；若线上"保存后刷新没了"或看到示例文章，先检查是不是被改成 `true`（当前默认 `false`）。
 - `admin.js` 内嵌了 `applyTheme/setTheme/setupThemeToggle` 三个函数（不从 index.js 导入，避免跨模块依赖），修改主题逻辑时 index.js 和 admin.js 要同步更新。
@@ -231,6 +231,7 @@ npx --yes serve .
 3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
 4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。
 5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
+   未设置 PAT 时：输入框可编辑、placeholder 为原始提示、meta 行显示「仅在本地使用」；保存后 → 输入框自动 disabled + 灰化、眼睛按钮隐藏、meta 行改为「已在本地」、placeholder 改为「已保存（点击清除后可修改）」；点击「清除」→ 恢复可编辑状态。
    标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
    点击某篇文章「编辑」→ 表单回填正确，slug 下方显示灰色 hint（含锁定的文件名），正文正确（YAML front matter 已剥离）；新建模式下 slug hint 隐藏。
    文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
