@@ -1146,6 +1146,17 @@ body.admin-page .pat-input-wrapper input {
     padding-right: 36px;
 }
 
+body.admin-page .pat-input-wrapper input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-color);
+}
+
+body.admin-page .pat-input-wrapper input:disabled::placeholder {
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
 body.admin-page .pat-toggle {
     position: absolute;
     right: 4px;

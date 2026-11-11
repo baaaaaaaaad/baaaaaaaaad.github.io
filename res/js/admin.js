@@ -243,6 +243,25 @@ function bindToolbar() {
   const newBtn = $('#new');
   const saveBtn = $('#save');
   const patInput = $('#pat');
+  const patToggle = $('#pat-toggle');
+  const patMeta = document.querySelector('header .meta');
+
+  function syncPatState() {
+    const hasPat = !!localStorage.getItem('gh_pat');
+    if (patInput) {
+      patInput.disabled = hasPat;
+      patInput.value = '';
+      patInput.placeholder = hasPat ? '已保存（点击清除后可修改）' : '输入 PAT（仅 gist 权限）';
+    }
+    if (patToggle) {
+      patToggle.style.display = hasPat ? 'none' : '';
+    }
+    if (patMeta) {
+      patMeta.textContent = hasPat ? 'PAT 已在本地，点击「清除」后可重新输入' : '仅在本地使用 PAT 写入 Gist';
+    }
+  }
+
+  syncPatState();
 
   if (patSaveBtn && patInput) {
     patSaveBtn.addEventListener('click', () => {
@@ -250,18 +269,19 @@ function bindToolbar() {
       if (!v) { alert('请输入 PAT'); return; }
       localStorage.setItem('gh_pat', v);
       toast('PAT 已保存到本地');
+      syncPatState();
     });
   }
 
   if (patClearBtn && patInput) {
     patClearBtn.addEventListener('click', () => {
+      if (!confirm('确定清除本地保存的 PAT？清除后无法写入 Gist。')) return;
       localStorage.removeItem('gh_pat');
-      patInput.value = '';
       toast('已清除本地 PAT');
+      syncPatState();
     });
   }
 
-  const patToggle = $('#pat-toggle');
   if (patToggle && patInput) {
     patToggle.addEventListener('click', () => {
       const isHidden = patInput.type === 'password';
