@@ -17,7 +17,7 @@
    ```json
    {
      "version": 1,
-     "site": { "title": "My Gist Blog", "description": "博客由 Gist 驱动", "author": "yourname" },
+     "site": { "title": "Blog For Navigation", "description": "博客由 Gist 驱动", "author": "yourname" },
      "posts": []
    }
    ```
