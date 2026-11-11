@@ -144,7 +144,7 @@ npx --yes serve .
 
 ## 编码约定
 
-- 纯原生 JS，不引入框架、包管理器或打包流程；第三方库优先下载 UMD 构建到 `res/js/vendor/`，暴露全局变量后直接 `<script src>` 引用。
+- 纯原生 JS，不引入框架、包管理器或打包流程；第三方库优先下载 UMD 构建到 `res/js/vendor/`，暴露全局变量后直接 `<script src>` 引用。**下载后必须验证文件内容**（Read 前几行确认有代码），不能只看文件存在——jsdelivr 等 CDN 偶尔返回 502 时 PowerShell 的 `Invoke-WebRequest` / `curl` 不会报错但会写 0 字节空文件，浏览器加载后全局变量 undefined，`post.js` 会触发「Markdown 渲染资源加载失败」提示。首选 unpkg.com 做下载源（`https://unpkg.com/<pkg>@<version>/<file>`）。
 - 入口脚本使用 ES Modules；`nav.js` 保持经典脚本，便于直接通过 `<script defer>` 加载。
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
@@ -229,7 +229,7 @@ npx --yes serve .
 1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
 2. 主题按钮：单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；三击显示/隐藏搜索框与列表按钮（状态栏存 `indexControlsVisible`）；`Shift+T` 快捷键可切换显隐。
 3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
-4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。
+4. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`，正文 Markdown 渲染正常、上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
 5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
    未设置 PAT 时：输入框可编辑、placeholder 为原始提示、meta 行显示「仅在本地使用」；保存后 → 输入框自动 disabled + 灰化、眼睛按钮隐藏、meta 行改为「已在本地」、placeholder 改为「已保存（点击清除后可修改）」；点击「清除」→ 恢复可编辑状态。
    标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
