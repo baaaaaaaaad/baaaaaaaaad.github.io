@@ -7,6 +7,50 @@
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
 
+function applyTheme(theme, persist) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark-mode', isDark);
+  if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.setAttribute('aria-pressed', String(isDark));
+}
+
+function setTheme(theme, persist = true, origin = null) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
+    applyTheme(theme, persist);
+    return;
+  }
+  document.documentElement.style.setProperty('--theme-x', `${origin.x}px`);
+  document.documentElement.style.setProperty('--theme-y', `${origin.y}px`);
+  document.documentElement.classList.add('theme-transitioning');
+  try {
+    const transition = document.startViewTransition(() => applyTheme(theme, persist));
+    const cleanup = () => document.documentElement.classList.remove('theme-transitioning');
+    transition.finished.then(cleanup, cleanup);
+  } catch {
+    document.documentElement.classList.remove('theme-transitioning');
+    applyTheme(theme, persist);
+  }
+}
+
+function setupThemeToggle() {
+  applyTheme(localStorage.getItem('theme') || 'dark', false);
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', (event) => {
+    const rect = btn.getBoundingClientRect();
+    const origin = {
+      x: event.clientX || rect.left + rect.width / 2,
+      y: event.clientY || rect.top + rect.height / 2
+    };
+    const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+    setTheme(nextTheme, true, origin);
+  });
+}
+
+setupThemeToggle();
+
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
 
