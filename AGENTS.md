@@ -34,8 +34,8 @@ Gist Blog（无后台）— GitHub Pages + Gist + GitHub API
 2. 打开 `res/js/config.js`，把 `GIST_ID`、`OWNER` 改为你的实际值。
 3. 把本项目所有文件推送到你的 GitHub Pages 仓库（根目录或 `docs/`）。
 4. 在仓库 Settings → Pages 启用 Pages，访问站点。
-5. 首次使用真实数据前，把 `res/js/gist.js` 顶部的 `USE_MOCK_DATA` 改为 `false`。
-   默认值为 `true`，所有读写都走内存 Mock，不会访问 Gist。
+5. `res/js/gist.js` 顶部 `USE_MOCK_DATA` 决定是否走内存 Mock（默认 `false`，直接访问真实 Gist）。
+   本地调试时可以临时改回 `true`，所有读写都短路到内存变量，刷新会丢失。
 6. 第一次发布：进入 `admin.html`，粘贴**仅 `gist` 权限**的 PAT，填好内容后点击「保存」。
 
 ## 本地预览
@@ -54,9 +54,14 @@ npx --yes serve .
 
 - `index.html`：首页时钟、搜索与文章列表（标签筛选、搜索、分页）。
 - `post.html?slug=...`：文章详情页。
-- `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。
+- `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。三个页面共用主题偏好。
 
-首页默认隐藏搜索框与文章列表按钮。单击右上角主题按钮切换主题；双击只切换这两个控件的显示/隐藏，状态保存在本地缓存 `indexControlsVisible`。
+三页都默认 `body.dark-mode`，首次访问显示暗色主题；主题状态存 `localStorage.theme`。右上角主题按钮行为：
+
+- **首页**：单击延迟 250ms 切换主题（走 view-transition 圆形扩散），双击切换浏览器全屏，三击显示/隐藏搜索框与文章列表按钮。
+- **管理页**：单击切换主题（不做计数），同样走 view-transition 动画。
+
+首页默认隐藏搜索框与文章列表按钮，`body.controls-visible` 控制显隐，状态存 `localStorage.indexControlsVisible`，键盘 `Shift+T` 也能切换。
 
 首页背景会按清晨、白天、黄昏、夜晚切换极淡的氛围色；日期下方显示「今日进度」；文章列表使用卡片、标签与入场动画。
 
@@ -85,9 +90,9 @@ npx --yes serve .
 
 页面加载关系（修改时保持一致）：
 
-- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js`。首页导航是静态 HTML，不需要 `nav.js`。
+- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js`。首页导航与主题按钮均为静态 HTML，不需要 `nav.js`。
 - `post.html`：`res/css/index.css` + CDN 的 `marked` / `DOMPurify` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/post.js`。
-- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js`。
+- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js`。右上角主题按钮为静态 HTML，主题切换逻辑内嵌在 `admin.js`（同模块内定义 `applyTheme/setTheme/setupThemeToggle`）。
 
 不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。
 
@@ -98,7 +103,7 @@ npx --yes serve .
 - `CONFIG.GIST_ID`：当前为真实 Gist ID。
 - `CONFIG.OWNER`：仅展示用，不参与鉴权。
 - `CONFIG.PAGE_SIZE`：列表分页大小，默认 10。
-- `USE_MOCK_DATA`（`res/js/gist.js` 顶部）：**当前为 `true`**，所有读写走内存 Mock。接真实数据前改为 `false`。
+- `USE_MOCK_DATA`（`res/js/gist.js` 顶部）：**当前为 `false`**，所有读写走真实 GitHub API。本地调试时临时改为 `true`，刷新后 Mock 内存会重置——如果线上保存刷新后没了，先检查是不是被改成 `true`。
 - 修改数据行为时，Mock 与真实 API 两条分支都要保持一致（`getGist/getIndex/getPostFile/upsertPost/deletePost`）。
 
 `index.json` 的结构：
@@ -139,7 +144,7 @@ npx --yes serve .
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
 - 首页与详情/管理页的布局通过 `body.post-page`、`body.admin-page` 隔离，不要破坏首页的 flex 居中布局。
-- 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`。
+- 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`，三页默认 `<body class="dark-mode">` 防止刷新闪烁；JS 初始化若 localStorage 无值则回退到 `'dark'`。admin.js 内嵌了一份简化版主题切换逻辑（单级点击，不做计数），和 index.js 的 API 语义保持一致（`applyTheme/setTheme/setupThemeToggle`）。
 - DOM 查询使用 `document.querySelector` 并保持空值判断；页面入口脚本只应操作本页存在的元素。
 - 缩进：CSS 4 空格；JS 2 空格。
 - 注释使用中文，不要为显而易见的代码新增注释。
@@ -166,7 +171,10 @@ npx --yes serve .
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 CDN 加载失败给出明确提示。
 - 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
-- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 单击会延迟 250ms 切换主题，双击或 `Shift+T` 只切换这两个控件的显隐（`body.controls-visible`），状态存 `localStorage.indexControlsVisible`。不要改回即时 click 处理，否则双击会切换两次主题。
+- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 使用计数机制（250ms 内累计点击数）派发动作：单击=切换主题、双击=浏览器全屏、三击=切换显隐。键盘 `Shift+T` 是显隐控件的替代快捷键。不要改回即时 click 处理，否则多击时会多次触发主题切换。
+- admin 页的 `#theme-toggle` 简化为单击切换主题（不做计数），因为管理页没有搜索框，也不需要全屏入口。
+- `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
+- 时钟跳动动画依赖 `void el.offsetWidth` 强制 reflow 来重触发同名 CSS animation；移除动画类后不加 reflow 直接 `classList.add` 不会产生动画。`.clock .char[class*="char-jump"] { transition: none }` 在动画期间禁用元素上的 `transition: all`，两者缺一不可。
 - 键盘快捷键与焦点样式是无障碍替代：`Shift+T` 切换控件显隐；不要删除全局 `:focus-visible` 规则。`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
 - 首页使用 `<main>` + `.sr-only` 的 `<h1>`，文章列表区域使用 `<section>`，避免同一文档出现多个 `<main>`。
 - 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
@@ -174,17 +182,18 @@ npx --yes serve .
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
-- `USE_MOCK_DATA = true` 时不会访问 GitHub；若线上看到示例文章，先检查该开关。
+- `USE_MOCK_DATA = true` 时不会访问 GitHub，所有写操作只改内存，刷新后丢失；若线上"保存后刷新没了"或看到示例文章，先检查是不是被改成 `true`（当前默认 `false`）。
+- `admin.js` 内嵌了 `applyTheme/setTheme/setupThemeToggle` 三个函数（不从 index.js 导入，避免跨模块依赖），修改主题逻辑时 index.js 和 admin.js 要同步更新。
 - 不要提交任何 token、真实个人敏感信息；`.gitignore` 已忽略 `.vscode/`、`node_modules/`、`dist/`、`.vercel/`、`.old/`。
 
 ## 修改后的验证
 
 无自动化测试，按以下清单人工验证：
 
-1. `http://localhost:8000/` 时钟每秒跳动、日期正确、主题切换可持久化；`Shift+T` 可切换搜索/列表控件显隐。
-2. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
-3. 打开 `post.html?slug=hello-world`，正文渲染正常，上一篇/下一篇链接可用。
-4. 打开 `admin.html`，Mock 模式下新建、编辑、删除不会重复写入；浏览器控制台无 404、无模块解析错误。
-5. 若改动写入逻辑，先保持 `USE_MOCK_DATA = true` 验证，再切换真实 Gist 并用仅 `gist` 权限的 PAT 测试。
-6. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭；键盘 Tab 应能看到清晰焦点。
+1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
+2. 主题按钮：单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；三击显示/隐藏搜索框与列表按钮（状态栏存 `indexControlsVisible`）；`Shift+T` 快捷键可切换显隐。
+3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
+4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用。
+5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
+6. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
 7. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
