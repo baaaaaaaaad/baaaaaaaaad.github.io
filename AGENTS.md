@@ -69,6 +69,7 @@ npx --yes serve .
 
 ```text
 .
+├─ sw.js                       # Service Worker：静态资源 cache-first，HTML/Gist API network-first
 ├─ index.html                 # 首页 + 内嵌文章列表页
 ├─ post.html                  # 文章详情页
 ├─ admin.html                 # 管理页
@@ -81,7 +82,11 @@ npx --yes serve .
 │     ├─ index.js             # 首页入口：列表、时钟、主题、搜索、页面切换
 │     ├─ post.js              # 详情页入口：解析 Front Matter 并渲染 Markdown
 │     ├─ admin.js             # 管理页入口：新建 / 编辑 / 删除
-│     └─ nav.js               # 详情页与管理页共用的导航条（经典脚本，非模块）
+│     ├─ nav.js               # 详情页与管理页共用的导航条（经典脚本，非模块）
+│     ├─ sw-register.js       # 三页共同的 SW 注册脚本（经典脚本，defer）
+│     └─ vendor/
+│        ├─ marked.min.js     # Markdown 渲染器（本地 UMD 构建，暴露全局 marked）
+│        └─ purify.min.js     # XSS 过滤器（本地 UMD 构建，暴露全局 DOMPurify）
 ├─ sample-gist-files/         # Gist 数据示例，仅参考，不会自动上传
 └─ .gitignore
 ```
@@ -90,11 +95,11 @@ npx --yes serve .
 
 页面加载关系（修改时保持一致）：
 
-- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js`。首页导航与主题按钮均为静态 HTML，不需要 `nav.js`。
-- `post.html`：`res/css/index.css` + CDN 的 `marked` / `DOMPurify` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/post.js`。
-- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js`。右上角主题按钮为静态 HTML，主题切换逻辑内嵌在 `admin.js`（同模块内定义 `applyTheme/setTheme/setupThemeToggle`）。
+- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）。首页导航与主题按钮均为静态 HTML，不需要 `nav.js`。
+- `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。
+- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。右上角主题按钮为静态 HTML，主题切换逻辑内嵌在 `admin.js`（同模块内定义 `applyTheme/setTheme/setupThemeToggle`）。
 
-不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。
+不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。不要改回 CDN 加载 marked / DOMPurify。
 
 ## 数据读写
 
@@ -139,7 +144,7 @@ npx --yes serve .
 
 ## 编码约定
 
-- 纯原生 JS，不引入框架、包管理器或打包流程；确需第三方库时沿用 CDN `<script>` 方式。
+- 纯原生 JS，不引入框架、包管理器或打包流程；第三方库优先下载 UMD 构建到 `res/js/vendor/`，暴露全局变量后直接 `<script src>` 引用。
 - 入口脚本使用 ES Modules；`nav.js` 保持经典脚本，便于直接通过 `<script defer>` 加载。
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
@@ -187,10 +192,10 @@ npx --yes serve .
 
 ## 可选扩展
 
-- 使用 GitHub OAuth（PKCE/Device Flow）替代 PAT 粘贴。
-- 增加 Service Worker 做离线缓存。
-- 在 `index.json` 里保留关键词字段，做更快的前端全文搜索。
-- 将 `marked` / `DOMPurify` 下载到本地，避免依赖 CDN。
+- ~~**使用 GitHub OAuth 替代 PAT 粘贴**~~ ❌ 当前架构不可行：GitHub 已移除 Device Flow（2021）；PKCE / Authorization Code 流程的 client_secret 不能放纯静态前端；GitHub Pages 无后端做 token 交换。保留 PAT 方案。
+- ~~**增加 Service Worker 做离线缓存**~~ ✅ 已实现：根目录 `sw.js` + `res/js/sw-register.js` 三页共同注册。缓存策略——静态资源（HTML/CSS/JS/vendor/icon）cache-first；导航请求与 Gist API network-first（失败时回退缓存）。每次部署改 cache 名 `static-vN` 触发更新。
+- **在 `index.json` 里保留关键词字段做更快的前端搜索** — 当前 `applyFilter` 已用 `${title} ${summary} ${tags}` 拼接 + `toLowerCase().includes()`，几十篇文章下 1ms 级完成，暂无瓶颈。文章超过 200 篇时再考虑。
+- ~~**将 `marked` / `DOMPurify` 下载到本地避免依赖 CDN**~~ ✅ 已完成：下载 UMD 构建到 `res/js/vendor/marked.min.js` + `purify.min.js`，`post.html` 改本地路径。暴露全局 `marked` / `DOMPurify`，`post.js` 检查 `typeof` 的守卫仍然生效。
 
 ## 已知陷阱
 
@@ -199,7 +204,7 @@ npx --yes serve .
 - `res/js/index.js` 顶部仍会调用列表 `main()`，但已用 `#post-list` 存在性做守卫；不要在无列表元素的页面加载它。
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
-- `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 CDN 加载失败给出明确提示。
+- `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
 - 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
 - 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 使用计数机制（250ms 内累计点击数）派发动作：单击=切换主题、双击=浏览器全屏、三击=切换显隐。键盘 `Shift+T` 是显隐控件的替代快捷键。不要改回即时 click 处理，否则多击时会多次触发主题切换。
 - admin 页的 `#theme-toggle` 简化为单击切换主题（不做计数），因为管理页没有搜索框，也不需要全屏入口。
@@ -212,6 +217,7 @@ npx --yes serve .
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
+- `sw.js` 在根目录以最大 scope 注册，首次安装时预缓存 `STATIC_ASSETS` 中的固定列表；新增静态文件（CSS/JS/icon）时记得把路径加进去。部署更新时改 cache 名 `static-vN` 触发旧缓存淘汰。不要把 POST/PATCH 请求（API 写操作）放进缓存。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub，所有写操作只改内存，刷新后丢失；若线上"保存后刷新没了"或看到示例文章，先检查是不是被改成 `true`（当前默认 `false`）。
 - `admin.js` 内嵌了 `applyTheme/setTheme/setupThemeToggle` 三个函数（不从 index.js 导入，避免跨模块依赖），修改主题逻辑时 index.js 和 admin.js 要同步更新。
 - 不要提交任何 token、真实个人敏感信息；`.gitignore` 已忽略 `.vscode/`、`node_modules/`、`dist/`、`.vercel/`、`.old/`。
@@ -223,12 +229,13 @@ npx --yes serve .
 1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
 2. 主题按钮：单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；三击显示/隐藏搜索框与列表按钮（状态栏存 `indexControlsVisible`）；`Shift+T` 快捷键可切换显隐。
 3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
-4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用。
+4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。
 5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
    标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
    点击某篇文章「编辑」→ 表单回填正确，slug 下方显示灰色 hint（含锁定的文件名），正文正确（YAML front matter 已剥离）；新建模式下 slug hint 隐藏。
    文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
    窄屏下表格出现横向滚动条（列不被挤压变形）；Toast 显示在顶部居中（软键盘弹出时不被遮挡）。
    新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
-6. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
-7. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
+6. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v1` 和 `dynamic-v1`；离线模式下刷新任意页面，静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
+7. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
+8. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
