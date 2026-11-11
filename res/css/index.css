@@ -1043,6 +1043,23 @@ body.admin-page .table th {
     background: var(--search-bg);
 }
 
+body.admin-page .table .empty-row td,
+body.admin-page .table .loading-row td {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-color);
+    opacity: 0.6;
+    font-size: 14px;
+}
+
+body.admin-page .table .loading-row td {
+    opacity: 0.8;
+}
+
+body.admin-page .table .empty-row td {
+    opacity: 0.55;
+}
+
 body.admin-page input,
 body.admin-page select,
 body.admin-page textarea {

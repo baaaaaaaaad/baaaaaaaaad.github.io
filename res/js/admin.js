@@ -80,9 +80,19 @@ function requirePAT() {
 
 /** 拉取 index.json 并渲染到列表表格 */
 async function loadIndex() {
-  const idx = await Gist.getIndex();
-  currentPosts = idx.posts || [];
-  renderTable(currentPosts);
+  const tbody = $('#posts tbody');
+  if (tbody) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
+  }
+  try {
+    const idx = await Gist.getIndex();
+    currentPosts = idx.posts || [];
+    renderTable(currentPosts);
+  } catch (err) {
+    if (tbody) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">加载失败：${err.message || err}</td></tr>`;
+    }
+  }
 }
 
 /** 渲染列表表格（按创建时间倒序） */
@@ -91,6 +101,10 @@ function renderTable(posts) {
   if (!tbody) return;
 
   tbody.innerHTML = '';
+  if (!posts.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">还没有文章，填写左侧表单后点击「保存」即可发布第一篇 🎉</td></tr>`;
+    return;
+  }
   for (const p of [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -157,6 +171,11 @@ async function upsert(isUpdate, oldFilename) {
   requirePAT();
   const now = Util.nowISO();
   const meta = readForm();
+
+  if (!meta.title) {
+    toast('标题不能为空');
+    return;
+  }
 
   // 文件名：更新时保持旧文件名，避免外链失效；新建时基于当前日期 + slug
   const filename = isUpdate && oldFilename ? oldFilename : Util.buildFilename(now, meta.slug);
@@ -243,6 +262,14 @@ function bindToolbar() {
 
   if (newBtn) {
     newBtn.addEventListener('click', () => {
+      const titleEl = $('#title');
+      const bodyEl = $('#body');
+      const hasContent = editingFilename ||
+        (titleEl && titleEl.value.trim()) ||
+        (bodyEl && bodyEl.value.trim());
+      if (hasContent && !confirm('点击「新建」会清空当前表单，未保存的内容将丢失。确认继续？')) {
+        return;
+      }
       editingFilename = null;
       setForm({});
     });
