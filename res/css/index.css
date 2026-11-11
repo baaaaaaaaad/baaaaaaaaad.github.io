@@ -21,7 +21,7 @@
     --dark-text-color: #ffffff;
     --dark-secondary-text: #aaaaaa;
     --dark-border-color: #333333;
-    --dark-accent-color: #5fa3e4;
+    --dark-accent-color: #ffffff;
     --dark-hover-color: #4a88c2;
     --dark-shadow-light: rgba(255, 255, 255, 0.05);
     --dark-shadow-medium: rgba(255, 255, 255, 0.1);
@@ -264,7 +264,7 @@ body {
     width: 0;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--accent-color), #8b7cff);
+    background: #333333;
     transition: width 0.5s ease;
 }
 
@@ -275,6 +275,10 @@ body {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.03em;
     opacity: 0.8;
+}
+
+body.dark-mode .day-progress-fill {
+    background: var(--dark-accent-color);
 }
 
 /* 搜索区域 */
