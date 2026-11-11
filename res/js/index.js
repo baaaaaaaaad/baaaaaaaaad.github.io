@@ -593,7 +593,7 @@ function setupThemeToggle() {
   if (!themeToggle) return; // 如果主题切换按钮不存在，直接返回
 
   // 从 localStorage 加载主题设置，如果没有则使用默认主题（light）
-  setTheme(localStorage.getItem('theme') || 'light', false);
+  setTheme(localStorage.getItem('theme') || 'dark', false);
 
   let clickTimer = null;
   let clickOrigin = null;
