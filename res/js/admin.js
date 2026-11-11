@@ -259,6 +259,13 @@ function bindToolbar() {
     if (patMeta) {
       patMeta.textContent = hasPat ? 'PAT 已在本地，点击「清除」后可重新输入' : '仅在本地使用 PAT 写入 Gist';
     }
+    if (patSaveBtn) {
+      patSaveBtn.disabled = hasPat || !patInput?.value.trim();
+    }
+  }
+
+  if (patInput) {
+    patInput.addEventListener('input', syncPatState);
   }
 
   syncPatState();
