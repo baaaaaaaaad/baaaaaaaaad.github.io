@@ -12,25 +12,83 @@ const state = {
   page: 1         // 当前页码（从 1 开始）
 };
 
+/** 将 ISO 时间格式化为 YYYY.MM.DD */
+function formatPostDate(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+}
+
+/** 创建文章卡片 */
+function createPostCard(post, index) {
+  const li = document.createElement('li');
+  li.className = 'post-card';
+  li.style.setProperty('--i', index);
+
+  const head = document.createElement('div');
+  head.className = 'post-card-head';
+
+  const link = document.createElement('a');
+  link.className = 'post-card-title';
+  link.href = `post.html?slug=${encodeURIComponent(post.slug)}`;
+  link.textContent = post.title || '';
+
+  const date = document.createElement('time');
+  date.className = 'post-card-date';
+  date.dateTime = post.created_at || '';
+  date.textContent = formatPostDate(post.created_at);
+
+  head.append(link, date);
+
+  const summary = document.createElement('p');
+  summary.className = 'post-card-summary';
+  summary.textContent = post.summary || '';
+
+  const tags = document.createElement('div');
+  tags.className = 'post-card-tags';
+  (post.tags || []).forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.textContent = tag;
+    tags.append(chip);
+  });
+
+  li.append(head, summary);
+  if (tags.childElementCount) li.append(tags);
+  return li;
+}
+
+/** 渲染加载 / 空列表提示 */
+function renderListStatus(message) {
+  const ul = document.querySelector('#post-list');
+  if (!ul) return;
+  ul.classList.remove('animate-in');
+  const li = document.createElement('li');
+  li.className = 'post-list-status';
+  li.textContent = message;
+  ul.replaceChildren(li);
+}
+
 /** 渲染可视页的文章列表与分页信息 */
-function renderList() {
+function renderList(animate = false) {
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const end = start + CONFIG.PAGE_SIZE;
   const pageItems = state.filtered.slice(start, end);
 
   const ul = document.querySelector('#post-list');
-  // 检查元素是否存在，避免 TypeError
   if (ul) {
-    ul.innerHTML = '';
-
-    for (const p of pageItems) {
+    ul.classList.toggle('animate-in', animate && pageItems.length > 0);
+    if (!pageItems.length) {
+      const hasPublished = state.all.some(post => post.status === 'published');
       const li = document.createElement('li');
-      li.innerHTML = `
-        <a href="post.html?slug=${encodeURIComponent(p.slug)}">${p.title}</a>
-        <span class="meta">${new Date(p.created_at).toLocaleDateString()} · ${p.tags?.join(', ') || ''}</span>
-        <p class="summary">${p.summary || ''}</p>
-      `;
-      ul.appendChild(li);
+      li.className = 'post-list-status';
+      li.textContent = hasPublished ? '没有找到匹配的文章' : '这里还没有文章';
+      ul.replaceChildren(li);
+    } else {
+      const fragment = document.createDocumentFragment();
+      pageItems.forEach((post, index) => fragment.append(createPostCard(post, index)));
+      ul.replaceChildren(fragment);
     }
   }
 
@@ -60,7 +118,7 @@ function rebuildFilters() {
 }
 
 /** 应用当前筛选条件（标签 + 关键词），并按创建时间倒序排序 */
-function applyFilter() {
+function applyFilter(animate = false) {
   const { tag, q } = state;
   state.filtered = state.all.filter(p => {
     if (p.status !== 'published') return false; // 仅展示已发布
@@ -71,7 +129,7 @@ function applyFilter() {
   }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   state.page = 1;
-  renderList();
+  renderList(animate);
 }
 
 async function main() {
@@ -95,10 +153,11 @@ async function main() {
   }
 
   // 拉取索引并渲染
+  renderListStatus('正在加载文章…');
   const idx = await Gist.getIndex();
   state.all = idx.posts || [];
   rebuildFilters();
-  applyFilter();
+  applyFilter(true);
 
   // 绑定交互
   const tagEl = document.querySelector('#tag');
@@ -118,7 +177,7 @@ async function main() {
   const prevEl = document.querySelector('#prev');
   if (prevEl) {
     prevEl.addEventListener('click', () => {
-      if (state.page > 1) { state.page--; renderList(); }
+      if (state.page > 1) { state.page--; renderList(true); }
     });
   }
 
@@ -126,7 +185,7 @@ async function main() {
   if (nextEl) {
     nextEl.addEventListener('click', () => {
       const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-      if (state.page < totalPages) { state.page++; renderList(); }
+      if (state.page < totalPages) { state.page++; renderList(true); }
     });
   }
 }
@@ -145,6 +204,7 @@ main().catch(err => {
 // 存储上一次的时间字符串，用于比较时间是否变化
 let prevTimeStr = '';
 let prevDateStr = '';
+let prevTimeOfDay = '';
 
 /**
  * 实时更新时间并拆分字符进行动画处理
@@ -152,6 +212,9 @@ let prevDateStr = '';
  */
 function updateClock() {
   const now = new Date();
+  applyTimeOfDay(now);
+  updateDayProgress(now);
+
   // 格式化时间为 HH:MM:SS 格式
   const hours = String(now.getHours()).padStart(2, '0');  // 小时补零
   const minutes = String(now.getMinutes()).padStart(2, '0');  // 分钟补零
@@ -167,8 +230,8 @@ function updateClock() {
   // 如果是首次加载（prevTimeStr为空），初始渲染所有字符
   if (prevTimeStr === '') {
     // 将时间字符串拆分为单个字符并渲染为带span标签的HTML
-    clockEl.innerHTML = timeStr.split('').map((char, index) =>
-      `<span class="char char-static">${char}</span>`
+    clockEl.innerHTML = timeStr.split('').map(char =>
+      `<span class="char ${char === ':' ? 'char-colon' : 'char-static'}">${char}</span>`
     ).join('');
   }
   // 如果时间发生变化，只更新变化的字符
@@ -244,6 +307,36 @@ function updateDate(date) {
     }
     prevDateStr = dateStr;
   }
+}
+
+/** 根据小时返回时间段 */
+function getTimeOfDay(hour) {
+  if (hour >= 5 && hour < 8) return 'dawn';
+  if (hour >= 8 && hour < 17) return 'day';
+  if (hour >= 17 && hour < 20) return 'dusk';
+  return 'night';
+}
+
+/** 将时间段写到 body，用于切换氛围背景 */
+function applyTimeOfDay(date) {
+  const period = getTimeOfDay(date.getHours());
+  if (period === prevTimeOfDay) return;
+  prevTimeOfDay = period;
+  document.body.dataset.time = period;
+}
+
+/** 更新「今日进度」文案与进度条 */
+function updateDayProgress(date) {
+  const elapsed = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
+  const percent = Math.min(100, (elapsed / 86400) * 100);
+
+  const bar = document.getElementById('day-progress');
+  const fill = document.getElementById('day-progress-fill');
+  const text = document.getElementById('day-progress-text');
+
+  if (fill) fill.style.width = `${percent.toFixed(2)}%`;
+  if (text) text.textContent = `今日 ${Math.floor(percent)}%`;
+  if (bar) bar.setAttribute('aria-valuenow', String(Math.round(percent)));
 }
 
 /**
@@ -443,10 +536,31 @@ function setupControlsVisibility() {
 setupControlsVisibility();
 
 // 主题切换功能
-function setTheme(theme, persist = true) {
+function applyTheme(theme, persist) {
   const isDark = theme === 'dark';
   document.body.classList.toggle('dark-mode', isDark);
   if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+function setTheme(theme, persist = true, origin = null) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
+    applyTheme(theme, persist);
+    return;
+  }
+
+  document.documentElement.style.setProperty('--theme-x', `${origin.x}px`);
+  document.documentElement.style.setProperty('--theme-y', `${origin.y}px`);
+  document.documentElement.classList.add('theme-transitioning');
+
+  try {
+    const transition = document.startViewTransition(() => applyTheme(theme, persist));
+    const cleanup = () => document.documentElement.classList.remove('theme-transitioning');
+    transition.finished.then(cleanup, cleanup);
+  } catch {
+    document.documentElement.classList.remove('theme-transitioning');
+    applyTheme(theme, persist);
+  }
 }
 
 function setupThemeToggle() {
@@ -457,7 +571,15 @@ function setupThemeToggle() {
   setTheme(localStorage.getItem('theme') || 'light', false);
 
   let clickTimer = null;
-  themeToggle.addEventListener('click', () => {
+  let clickOrigin = null;
+
+  themeToggle.addEventListener('click', (event) => {
+    const rect = themeToggle.getBoundingClientRect();
+    clickOrigin = {
+      x: event.clientX || rect.left + rect.width / 2,
+      y: event.clientY || rect.top + rect.height / 2
+    };
+
     // 双击：只切换搜索框与文章列表按钮的显隐，不切换主题
     if (clickTimer) {
       clearTimeout(clickTimer);
@@ -469,7 +591,8 @@ function setupThemeToggle() {
     // 单击：延迟执行，等待可能的第二次点击
     clickTimer = setTimeout(() => {
       clickTimer = null;
-      setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark');
+      const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+      setTheme(nextTheme, true, clickOrigin);
     }, THEME_CLICK_DELAY);
   });
 }

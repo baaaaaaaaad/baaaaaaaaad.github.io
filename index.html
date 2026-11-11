@@ -21,8 +21,16 @@
     <div class="content-container page" id="main-page">
         <!-- 时钟 -->
         <div class="clock" id="clock"></div>
-        <!-- 日期 -->
-        <div class="date" id="date"></div>
+        <!-- 日期与今日进度 -->
+        <div class="date-block">
+            <div class="date" id="date"></div>
+            <div class="day-progress" id="day-progress" role="progressbar" aria-label="今日进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="day-progress-track">
+                    <div class="day-progress-fill" id="day-progress-fill"></div>
+                </div>
+                <span class="day-progress-text" id="day-progress-text">今日 0%</span>
+            </div>
+        </div>
         <!-- 搜索框 -->
         <div class="search-container">
             <div class="search-bar">
