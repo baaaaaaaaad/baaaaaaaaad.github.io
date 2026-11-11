@@ -1,6 +1,8 @@
 # AGENTS.md
 
-本文件面向在本仓库中工作的编码代理。修改代码前请先阅读「项目结构」「数据读写」「已知陷阱」。
+Gist Blog（无后台）— GitHub Pages + Gist + GitHub API
+
+本文件是仓库的唯一项目说明（已合并原 `README.md`），同时作为编码代理的工作指南。修改代码前请先阅读「项目结构」「数据读写」「已知陷阱」。
 
 ## 项目概览
 
@@ -11,6 +13,30 @@
 - 读写：浏览器直接调用 GitHub API；读取匿名，写入需要 PAT（仅 `gist` 权限）。
 - 技术栈：原生 HTML / CSS / JavaScript ES Modules（无框架、无包管理、无打包器、无测试）。
 - 页面语言与注释：中文。新增注释、文档、提交说明保持中文风格。
+
+> 写操作需要 Personal Access Token（PAT），仅勾选 `gist` 权限。
+> 切勿把 PAT 写进源码；管理页只把 PAT 存进当前浏览器的 `localStorage`，并提供一键清除。
+
+## 快速开始
+
+1. 在 https://gist.github.com/new 创建 **公开 Gist**，添加 `index.json` 文件：
+
+   ```json
+   {
+     "version": 1,
+     "site": { "title": "Blog For Navigation", "description": "博客由 Gist 驱动", "author": "yourname" },
+     "posts": []
+   }
+   ```
+
+   记下 **Gist ID**（URL 末尾的一长串）。
+
+2. 打开 `res/js/config.js`，把 `GIST_ID`、`OWNER` 改为你的实际值。
+3. 把本项目所有文件推送到你的 GitHub Pages 仓库（根目录或 `docs/`）。
+4. 在仓库 Settings → Pages 启用 Pages，访问站点。
+5. 首次使用真实数据前，把 `res/js/gist.js` 顶部的 `USE_MOCK_DATA` 改为 `false`。
+   默认值为 `true`，所有读写都走内存 Mock，不会访问 Gist。
+6. 第一次发布：进入 `admin.html`，粘贴**仅 `gist` 权限**的 PAT，填好内容后点击「保存」。
 
 ## 本地预览
 
@@ -23,6 +49,16 @@ npx --yes serve .
 ```
 
 然后访问 `http://localhost:8000/`。没有 install、build、lint、test 命令。
+
+## 页面
+
+- `index.html`：首页时钟、搜索与文章列表（标签筛选、搜索、分页）。
+- `post.html?slug=...`：文章详情页。
+- `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。
+
+首页默认隐藏搜索框与文章列表按钮。单击右上角主题按钮切换主题；双击只切换这两个控件的显示/隐藏，状态保存在本地缓存 `indexControlsVisible`。
+
+首页背景会按清晨、白天、黄昏、夜晚切换极淡的氛围色；日期下方显示「今日进度」；文章列表使用卡片、标签与入场动画。
 
 ## 实际文件结构
 
@@ -44,6 +80,8 @@ npx --yes serve .
 ├─ sample-gist-files/         # Gist 数据示例，仅参考，不会自动上传
 └─ .gitignore
 ```
+
+`config.js` 与 `gist.js` 是三个页面入口共享的模块；修改数据读写行为时只需改这两处。
 
 页面加载关系（修改时保持一致）：
 
@@ -87,10 +125,12 @@ npx --yes serve .
 约定：
 
 - 列表只展示 `status === 'published'` 的文章，按 `created_at` 倒序。
-- Markdown 文件带 YAML Front Matter，但 `index.json` 才是主数据源。
+- Markdown 文件带 YAML Front Matter（冗余存储元数据），但 `index.json` 才是主数据源。
 - 文件名由「UTC 日期 + slug」生成；更新文章时复用原文件名，避免链接失效。
 - 删除文章 = 在 Gist PATCH 请求中把该文件名设为 `null`，同时回写 `index.json`。
 - `slug` 生成规则见 `res/js/gist.js` 的 `Util.slugify`：小写、保留中英文数字、空白转 `-`。
+
+示例数据见 `sample-gist-files/`，仅参考，不会自动上传到 Gist。
 
 ## 编码约定
 
@@ -103,6 +143,19 @@ npx --yes serve .
 - DOM 查询使用 `document.querySelector` 并保持空值判断；页面入口脚本只应操作本页存在的元素。
 - 缩进：CSS 4 空格；JS 2 空格。
 - 注释使用中文，不要为显而易见的代码新增注释。
+
+## 安全提示
+
+- PAT 权限**仅勾选 `gist`**；不要勾选 `repo` 或其他权限。
+- PAT 只保存在浏览器本地（`localStorage.gh_pat`），可在管理页右上角随时清除。
+- 切勿把 PAT 写入源码、示例、日志或提交记录。
+
+## 可选扩展
+
+- 使用 GitHub OAuth（PKCE/Device Flow）替代 PAT 粘贴。
+- 增加 Service Worker 做离线缓存。
+- 在 `index.json` 里保留关键词字段，做更快的前端全文搜索。
+- 将 `marked` / `DOMPurify` 下载到本地，避免依赖 CDN。
 
 ## 已知陷阱
 
