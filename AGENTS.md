@@ -175,15 +175,15 @@ npx --yes serve .
 
 ### 可维护性 / 边界情况
 
-7. **slug 与文件名的关系无提示** — 更新时复用旧文件名（避免外链失效），但用户在 slug 输入框改了 slug 后，文件名并不变化，容易困惑。可加一行说明。
-8. **长列表无分页** — 文章数量多时表格会很长，且前端渲染全部行。
-9. **小屏表单布局** — `.controls` grid `1fr 1fr` 在移动端会挤压，`@media (max-width: 768px)` 未覆盖管理页表单。
-10. **Front Matter 解析较弱** — 编辑时用简单的 `indexOf(':')` 解析 YAML，对带冒号的值、嵌套结构会出错。当前数据格式简单所以能用，但属于脆弱实现。
+- ~~**slug 与文件名的关系无提示** — 更新时复用旧文件名（避免外链失效），但用户在 slug 输入框改了 slug 后，文件名并不变化，容易困惑。可加一行说明。~~ ✅ 已修复：`setForm` 编辑时在 slug 下方显示灰字 hint，内容包含实际锁定的文件名。
+- ~~**长列表无分页** — 文章数量多时表格会很长，且前端渲染全部行。~~ ✅ 已修复：表格外包 `.table-wrapper`，`max-height: 480px; overflow-y: auto`，小屏 `320px`；thead 用 `position: sticky` 固定表头。管理场景下内部滚动比分页更友好（能一眼对比所有条目）。
+- ~~**小屏表单布局** — `.controls` grid `1fr 1fr` 在移动端会挤压，`@media (max-width: 768px)` 未覆盖管理页表单。~~ ✅ 已修复：inline style 搬到 `.admin-form-grid` + `.admin-col-span` 类，media query 下变成单列；`.pat-controls` 也加了小屏 flex-direction:column。
+- ~~**Front Matter 解析较弱** — 编辑时用简单的 `indexOf(':')` 解析 YAML，对带冒号的值、嵌套结构会出错。当前数据格式简单所以能用，但属于脆弱实现。~~ ✅ 已彻底移除：编辑时元数据全从 `currentPosts`（即 index.json）拿，.md 文件只做"剥掉 front matter 外壳"拿正文（`md.replace(/^---[\s\S]*?---\n?/, '')`），不再解析 YAML。`setForm(meta, editingFilename)` 第二个参数控制 slug hint 显隐。
 
 ### 样式
 
-11. **Toast 可能被移动端键盘遮挡** — `position: fixed; bottom: 30px` 在弹出输入法时可能不可见。
-12. **表格无横向滚动** — 列多时小屏可能溢出容器。
+- ~~**Toast 可能被移动端键盘遮挡** — `position: fixed; bottom: 30px` 在弹出输入法时可能不可见。~~ ✅ 已修复：Toast 从底部挪到顶部（`top: 30px`），顶部永远不被软键盘遮挡；换为强调色 + 阴影让它更像系统通知。
+- ~~**表格无横向滚动** — 列多时小屏可能溢出容器。~~ ✅ 已修复：`.table-wrapper` 加 `overflow-x: auto`，内部 `.table` 设 `white-space: nowrap; min-width: 720px`，窄屏自动出现横向滚动条，列不再被挤压。
 
 ## 可选扩展
 
@@ -225,6 +225,10 @@ npx --yes serve .
 3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
 4. 打开 `post.html?slug=...`，正文 Markdown 渲染正常，上一篇/下一篇链接可用。
 5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
-   标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
+   标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
+   点击某篇文章「编辑」→ 表单回填正确，slug 下方显示灰色 hint（含锁定的文件名），正文正确（YAML front matter 已剥离）；新建模式下 slug hint 隐藏。
+   文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
+   窄屏下表格出现横向滚动条（列不被挤压变形）；Toast 显示在顶部居中（软键盘弹出时不被遮挡）。
+   新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
 6. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
 7. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。

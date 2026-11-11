@@ -80,7 +80,7 @@ function requirePAT() {
 
 /** 拉取 index.json 并渲染到列表表格 */
 async function loadIndex() {
-  const tbody = $('#posts tbody');
+  const tbody = $('#posts-body');
   if (tbody) {
     tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
   }
@@ -97,7 +97,7 @@ async function loadIndex() {
 
 /** 渲染列表表格（按创建时间倒序） */
 function renderTable(posts) {
-  const tbody = $('#posts tbody');
+  const tbody = $('#posts-body');
   if (!tbody) return;
 
   tbody.innerHTML = '';
@@ -144,14 +144,15 @@ function readForm() {
   return { title, summary, tags, status, slug, body: bodyEl.value };
 }
 
-/** 将元数据回填到表单（用于编辑） */
-function setForm(meta) {
+/** 将元数据回填到表单（用于编辑）。editingFilename 非空时为更新模式 */
+function setForm(meta, editingFilename = null) {
   const titleEl = $('#title');
   const summaryEl = $('#summary');
   const tagsEl = $('#tags');
   const statusEl = $('#status');
   const slugEl = $('#slug');
   const bodyEl = $('#body');
+  const hintEl = $('#slug-hint');
 
   if (titleEl) titleEl.value = meta.title || '';
   if (summaryEl) summaryEl.value = meta.summary || '';
@@ -159,6 +160,16 @@ function setForm(meta) {
   if (statusEl) statusEl.value = meta.status || 'published';
   if (slugEl) slugEl.value = meta.slug || '';
   if (bodyEl) bodyEl.value = meta.body || '';
+
+  if (hintEl) {
+    if (editingFilename) {
+      hintEl.textContent = `更新时文件名保持 "${editingFilename}" 不变以保留已有外链。改 slug 仅影响列表展示。`;
+      hintEl.style.display = 'block';
+    } else {
+      hintEl.textContent = '';
+      hintEl.style.display = 'none';
+    }
+  }
 }
 
 /**
@@ -297,27 +308,10 @@ function bindTable() {
     const filename = btn.dataset.file;
 
     if (act === 'edit') {
-      // 拉取原文并解析 Front Matter
       const md = await Gist.getPostFile(filename);
-      const fm = /^---([\s\S]*?)---\n?([\s\S]*)$/m.exec(md);
-      let meta = { body: md };
-      if (fm) {
-        const yaml = fm[1].trim();
-        const body = fm[2];
-        meta = { body };
-        yaml.split(/\n+/).forEach(line => {
-          const i = line.indexOf(':');
-          if (i > 0) {
-            const k = line.slice(0, i).trim();
-            let v = line.slice(i + 1).trim();
-            if (v.startsWith('[') && v.endsWith(']')) {
-              try { v = JSON.parse(v.replace(/([a-zA-Z0-9_\-]+)(?=\s*,|\s*\])/g, '"$1"')); } catch {}
-            }
-            meta[k] = v;
-          }
-        });
-      }
-      setForm(meta);
+      const post = currentPosts.find(p => p.filename === filename) || {};
+      const fmStripped = md.replace(/^---[\s\S]*?---\n?/, '');
+      setForm({ ...post, body: fmStripped }, filename);
       editingFilename = filename;
     }
 
