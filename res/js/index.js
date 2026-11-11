@@ -588,15 +588,27 @@ function setupKeyboardToggles() {
   });
 }
 
+function toggleFullscreen() {
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+  if (fsEl) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (exit) exit.call(document);
+  } else {
+    const root = document.documentElement;
+    const enter = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
+    if (enter) enter.call(root);
+  }
+}
+
 function setupThemeToggle() {
   const themeToggle = document.getElementById('theme-toggle');
-  if (!themeToggle) return; // 如果主题切换按钮不存在，直接返回
+  if (!themeToggle) return;
 
-  // 从 localStorage 加载主题设置，如果没有则使用默认主题（light）
   setTheme(localStorage.getItem('theme') || 'dark', false);
 
   let clickTimer = null;
   let clickOrigin = null;
+  let clickCount = 0;
 
   themeToggle.addEventListener('click', (event) => {
     const rect = themeToggle.getBoundingClientRect();
@@ -604,20 +616,24 @@ function setupThemeToggle() {
       x: event.clientX || rect.left + rect.width / 2,
       y: event.clientY || rect.top + rect.height / 2
     };
+    clickCount++;
 
-    // 双击：只切换搜索框与文章列表按钮的显隐，不切换主题
-    if (clickTimer) {
-      clearTimeout(clickTimer);
-      clickTimer = null;
-      setControlsVisible(!document.body.classList.contains('controls-visible'));
-      return;
-    }
+    if (clickTimer) clearTimeout(clickTimer);
 
-    // 单击：延迟执行，等待可能的第二次点击
     clickTimer = setTimeout(() => {
       clickTimer = null;
-      const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-      setTheme(nextTheme, true, clickOrigin);
+      const count = clickCount;
+      clickCount = 0;
+
+      if (count === 1) {
+        const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+        setTheme(nextTheme, true, clickOrigin);
+      } else if (count === 2) {
+        toggleFullscreen();
+      } else {
+        setControlsVisible(!document.body.classList.contains('controls-visible'));
+      }
+      clickOrigin = null;
     }, THEME_CLICK_DELAY);
   });
 }
