@@ -31,7 +31,18 @@
         <!-- 搜索框 -->
         <div class="search-container" id="search-container">
             <div class="search-bar">
+                <span class="search-leading" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
+                        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                        <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                </span>
                 <input type="text" id="search-input" placeholder="搜索..." class="search-input">
+                <button type="button" id="search-clear" class="search-clear" aria-label="清空搜索" title="清空搜索" hidden>
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+                        <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                </button>
                 <div class="search-engines" id="searchEnginesContainer" role="group" aria-label="搜索引擎选择">
                     <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Bing搜索"><img src="res/icon/bing-color.svg" alt="Bing" class="search-engine-img"></a>
                     <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用百度搜索"><img src="res/icon/baidu-color.svg" alt="Baidu" class="search-engine-img"></a>

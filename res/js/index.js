@@ -475,6 +475,21 @@ function searchWithEngine(engine) {
   window.open(url, '_blank');
 }
 
+/** 更新清空按钮与搜索引擎图标的可点击状态 */
+function updateSearchAffordances() {
+  const searchInput = document.getElementById('search-input');
+  const clearButton = document.getElementById('search-clear');
+  if (!searchInput) return;
+
+  const hasText = searchInput.value.trim() !== '';
+  if (clearButton) clearButton.hidden = !hasText;
+
+  // 有内容时显示手型光标，否则使用默认光标
+  document.querySelectorAll('.search-engine-icon').forEach(icon => {
+    icon.style.cursor = hasText ? 'pointer' : '';
+  });
+}
+
 /**
  * 初始化函数
  * 启动所有页面功能模块
@@ -488,6 +503,7 @@ function init() {
 
   // 添加搜索框回车事件监听 - 按回车时使用第一个搜索引擎搜索
   const searchInput = document.getElementById('search-input');
+  const clearButton = document.getElementById('search-clear');
   if (searchInput) {
     searchInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -501,15 +517,28 @@ function init() {
       }
     });
 
-    // 添加搜索框输入监听 - 根据是否有输入内容切换搜索图标光标样式
-    searchInput.addEventListener('input', function() {
-      const searchIcons = document.querySelectorAll('.search-engine-icon');
-      const hasText = this.value.trim() !== '';
+    // 输入内容变化时同步清空按钮与图标光标
+    searchInput.addEventListener('input', updateSearchAffordances);
 
-      // 有内容时显示手型光标，否则使用默认光标
-      searchIcons.forEach(icon => {
-        icon.style.cursor = hasText ? 'pointer' : '';
-      });
+    // Esc 清空并退出输入框
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (searchInput.value) {
+          searchInput.value = '';
+          updateSearchAffordances();
+        }
+        searchInput.blur();
+      }
+    });
+
+    updateSearchAffordances();
+  }
+
+  if (clearButton && searchInput) {
+    clearButton.addEventListener('click', function() {
+      searchInput.value = '';
+      updateSearchAffordances();
+      searchInput.focus();
     });
   }
 }

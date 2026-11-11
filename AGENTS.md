@@ -173,6 +173,7 @@ npx --yes serve .
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
+- 搜索框清空按钮 `#search-clear` 由 `updateSearchAffordances` 根据输入内容显隐；`Esc` 会清空并失焦。输入框必须保留 `min-width: 0`，否则移动端会被搜索引擎图标挤爆。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub；若线上看到示例文章，先检查该开关。
 - 不要提交任何 token、真实个人敏感信息；`.gitignore` 已忽略 `.vscode/`、`node_modules/`、`dist/`、`.vercel/`、`.old/`。

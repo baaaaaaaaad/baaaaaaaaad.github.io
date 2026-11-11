@@ -316,15 +316,62 @@ body {
     border-color: var(--accent-color);
 }
 
+.search-bar:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--shadow-light), 0 10px 30px var(--shadow-medium);
+    transform: translateY(-1px);
+}
+
+/* 搜索框左侧图标 */
+.search-leading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--secondary-text);
+    transition: color 0.3s ease;
+}
+
+.search-bar:focus-within .search-leading {
+    color: var(--accent-color);
+}
+
 .search-input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     background: transparent;
-    padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 20px);
+    padding: clamp(8px, 2vw, 12px) 0;
     font-size: clamp(14px, 3vw, 18px);
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 清空按钮 */
+.search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--secondary-text);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.search-clear[hidden] {
+    display: none;
+}
+
+.search-clear:hover {
+    background: var(--shadow-light);
+    color: var(--text-color);
 }
 
 .search-engines {
@@ -352,9 +399,9 @@ body {
 }
 
 .search-engine-icon:hover {
-    transform: scale(1.15) rotate(5deg);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 6px 15px var(--shadow-medium);
+    transform: scale(1.06);
+    background: var(--shadow-light);
+    box-shadow: none;
 }
 
 .search-engine-icon img,
@@ -876,16 +923,38 @@ html.theme-transitioning body * {
     }
 
     .search-bar {
-        padding: 8px 15px;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .search-leading svg {
+        width: 16px;
+        height: 16px;
     }
 
     .search-input {
         font-size: 14px;
     }
 
+    .search-clear {
+        width: 24px;
+        height: 24px;
+    }
+
+    .search-engines {
+        gap: 6px;
+        min-height: 30px;
+    }
+
     .search-engine-icon {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
+        margin-left: 0;
+    }
+
+    .search-engine-icon img {
+        width: 28px;
+        height: 28px;
     }
 
     .navigation-container {
@@ -944,6 +1013,10 @@ html.theme-transitioning body * {
 
     ::view-transition-new(root) {
         animation: none;
+    }
+
+    .search-bar:focus-within {
+        transform: none;
     }
 }
 
