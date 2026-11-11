@@ -164,9 +164,11 @@ npx --yes serve .
 - `res/js/index.js` 顶部仍会调用列表 `main()`，但已用 `#post-list` 存在性做守卫；不要在无列表元素的页面加载它。
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
-- `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。CDN 不可用时详情页无法渲染。
-- `index.html` 依赖 CDN 的 Font Awesome 6.4.0（带 integrity），升级时同步更新哈希。
-- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 单击会延迟 250ms 切换主题，双击只切换这两个控件的显隐（`body.controls-visible`），状态存 `localStorage.indexControlsVisible`。不要改回即时 click 处理，否则双击会切换两次主题。
+- `post.html` 依赖 CDN 的 `marked` 与 `DOMPurify`，渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 CDN 加载失败给出明确提示。
+- 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
+- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 单击会延迟 250ms 切换主题，双击或 `Shift+T` 只切换这两个控件的显隐（`body.controls-visible`），状态存 `localStorage.indexControlsVisible`。不要改回即时 click 处理，否则双击会切换两次主题。
+- 键盘快捷键与焦点样式是无障碍替代：`Shift+T` 切换控件显隐；不要删除全局 `:focus-visible` 规则。`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
+- 首页使用 `<main>` + `.sr-only` 的 `<h1>`，文章列表区域使用 `<section>`，避免同一文档出现多个 `<main>`。
 - 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
@@ -179,9 +181,10 @@ npx --yes serve .
 
 无自动化测试，按以下清单人工验证：
 
-1. `http://localhost:8000/` 时钟每秒跳动、日期正确、主题切换可持久化。
+1. `http://localhost:8000/` 时钟每秒跳动、日期正确、主题切换可持久化；`Shift+T` 可切换搜索/列表控件显隐。
 2. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
 3. 打开 `post.html?slug=hello-world`，正文渲染正常，上一篇/下一篇链接可用。
 4. 打开 `admin.html`，Mock 模式下新建、编辑、删除不会重复写入；浏览器控制台无 404、无模块解析错误。
 5. 若改动写入逻辑，先保持 `USE_MOCK_DATA = true` 验证，再切换真实 Gist 并用仅 `gist` 权限的 PAT 测试。
-6. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
+6. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭；键盘 Tab 应能看到清晰焦点。
+7. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。

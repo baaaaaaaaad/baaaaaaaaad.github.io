@@ -54,6 +54,12 @@ async function main() {
     return;
   }
 
+  // CDN 资源不可用时给出明确提示，而不是直接抛出 ReferenceError
+  if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+    contentEl.textContent = 'Markdown 渲染资源加载失败，请检查网络后刷新。';
+    return;
+  }
+
   // 在索引里找到对应文章
   const idx = await Gist.getIndex();
   const posts = idx.posts || [];

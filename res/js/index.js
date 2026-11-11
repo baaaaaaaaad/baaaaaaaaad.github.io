@@ -524,12 +524,17 @@ const THEME_CLICK_DELAY = 250;
 function setControlsVisible(visible) {
   document.body.classList.toggle('controls-visible', visible);
   localStorage.setItem(CONTROLS_VISIBILITY_KEY, visible ? '1' : '0');
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) themeToggle.setAttribute('aria-expanded', String(visible));
 }
 
 function setupControlsVisibility() {
-  if (localStorage.getItem(CONTROLS_VISIBILITY_KEY) === '1') {
-    document.body.classList.add('controls-visible');
-  }
+  const visible = localStorage.getItem(CONTROLS_VISIBILITY_KEY) === '1';
+  document.body.classList.toggle('controls-visible', visible);
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) themeToggle.setAttribute('aria-expanded', String(visible));
 }
 
 // 尽早应用显隐状态，避免刷新时先显示再隐藏
@@ -540,6 +545,9 @@ function applyTheme(theme, persist) {
   const isDark = theme === 'dark';
   document.body.classList.toggle('dark-mode', isDark);
   if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) themeToggle.setAttribute('aria-pressed', String(isDark));
 }
 
 function setTheme(theme, persist = true, origin = null) {
@@ -561,6 +569,23 @@ function setTheme(theme, persist = true, origin = null) {
     document.documentElement.classList.remove('theme-transitioning');
     applyTheme(theme, persist);
   }
+}
+
+/** 键盘替代双击：Shift+T 切换搜索框与文章列表按钮的显隐 */
+function setupKeyboardToggles() {
+  document.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.key.toLowerCase() !== 't') return;
+
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      if (target.isContentEditable) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+    }
+
+    event.preventDefault();
+    setControlsVisible(!document.body.classList.contains('controls-visible'));
+  });
 }
 
 function setupThemeToggle() {
@@ -632,6 +657,7 @@ function togglePage(pageName) {
 document.addEventListener('DOMContentLoaded', () => {
   // 设置主题切换
   setupThemeToggle();
+  setupKeyboardToggles();
 
   // 检查URL参数是否包含slug
   const urlParams = new URLSearchParams(window.location.search);
