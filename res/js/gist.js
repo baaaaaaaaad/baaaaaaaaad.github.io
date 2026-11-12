@@ -10,7 +10,7 @@ import { CONFIG } from './config.js';
 const API_BASE = 'https://api.github.com';
 
 // Mock 数据开关 - 设置为 true 时使用本地模拟数据
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 // Mock 数据定义
 const MOCK_DATA = {

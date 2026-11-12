@@ -7,6 +7,50 @@
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
 
+function applyTheme(theme, persist) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark-mode', isDark);
+  if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.setAttribute('aria-pressed', String(isDark));
+}
+
+function setTheme(theme, persist = true, origin = null) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
+    applyTheme(theme, persist);
+    return;
+  }
+  document.documentElement.style.setProperty('--theme-x', `${origin.x}px`);
+  document.documentElement.style.setProperty('--theme-y', `${origin.y}px`);
+  document.documentElement.classList.add('theme-transitioning');
+  try {
+    const transition = document.startViewTransition(() => applyTheme(theme, persist));
+    const cleanup = () => document.documentElement.classList.remove('theme-transitioning');
+    transition.finished.then(cleanup, cleanup);
+  } catch {
+    document.documentElement.classList.remove('theme-transitioning');
+    applyTheme(theme, persist);
+  }
+}
+
+function setupThemeToggle() {
+  applyTheme(localStorage.getItem('theme') || 'dark', false);
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', (event) => {
+    const rect = btn.getBoundingClientRect();
+    const origin = {
+      x: event.clientX || rect.left + rect.width / 2,
+      y: event.clientY || rect.top + rect.height / 2
+    };
+    const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+    setTheme(nextTheme, true, origin);
+  });
+}
+
+setupThemeToggle();
+
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
 
@@ -36,17 +80,31 @@ function requirePAT() {
 
 /** 拉取 index.json 并渲染到列表表格 */
 async function loadIndex() {
-  const idx = await Gist.getIndex();
-  currentPosts = idx.posts || [];
-  renderTable(currentPosts);
+  const tbody = $('#posts-body');
+  if (tbody) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
+  }
+  try {
+    const idx = await Gist.getIndex();
+    currentPosts = idx.posts || [];
+    renderTable(currentPosts);
+  } catch (err) {
+    if (tbody) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">加载失败：${err.message || err}</td></tr>`;
+    }
+  }
 }
 
 /** 渲染列表表格（按创建时间倒序） */
 function renderTable(posts) {
-  const tbody = $('#posts tbody');
+  const tbody = $('#posts-body');
   if (!tbody) return;
 
   tbody.innerHTML = '';
+  if (!posts.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">还没有文章，填写左侧表单后点击「保存」即可发布第一篇 🎉</td></tr>`;
+    return;
+  }
   for (const p of [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -86,14 +144,15 @@ function readForm() {
   return { title, summary, tags, status, slug, body: bodyEl.value };
 }
 
-/** 将元数据回填到表单（用于编辑） */
-function setForm(meta) {
+/** 将元数据回填到表单（用于编辑）。editingFilename 非空时为更新模式 */
+function setForm(meta, editingFilename = null) {
   const titleEl = $('#title');
   const summaryEl = $('#summary');
   const tagsEl = $('#tags');
   const statusEl = $('#status');
   const slugEl = $('#slug');
   const bodyEl = $('#body');
+  const hintEl = $('#slug-hint');
 
   if (titleEl) titleEl.value = meta.title || '';
   if (summaryEl) summaryEl.value = meta.summary || '';
@@ -101,6 +160,16 @@ function setForm(meta) {
   if (statusEl) statusEl.value = meta.status || 'published';
   if (slugEl) slugEl.value = meta.slug || '';
   if (bodyEl) bodyEl.value = meta.body || '';
+
+  if (hintEl) {
+    if (editingFilename) {
+      hintEl.textContent = `更新时文件名保持 "${editingFilename}" 不变以保留已有外链。改 slug 仅影响列表展示。`;
+      hintEl.style.display = 'block';
+    } else {
+      hintEl.textContent = '';
+      hintEl.style.display = 'none';
+    }
+  }
 }
 
 /**
@@ -113,6 +182,11 @@ async function upsert(isUpdate, oldFilename) {
   requirePAT();
   const now = Util.nowISO();
   const meta = readForm();
+
+  if (!meta.title) {
+    toast('标题不能为空');
+    return;
+  }
 
   // 文件名：更新时保持旧文件名，避免外链失效；新建时基于当前日期 + slug
   const filename = isUpdate && oldFilename ? oldFilename : Util.buildFilename(now, meta.slug);
@@ -169,6 +243,32 @@ function bindToolbar() {
   const newBtn = $('#new');
   const saveBtn = $('#save');
   const patInput = $('#pat');
+  const patToggle = $('#pat-toggle');
+  const patMeta = document.querySelector('header .meta');
+
+  function syncPatState() {
+    const hasPat = !!localStorage.getItem('gh_pat');
+    if (patInput) {
+      patInput.disabled = hasPat;
+      patInput.value = '';
+      patInput.placeholder = hasPat ? '已保存（点击清除后可修改）' : '输入 PAT（仅 gist 权限）';
+    }
+    if (patToggle) {
+      patToggle.style.display = hasPat ? 'none' : '';
+    }
+    if (patMeta) {
+      patMeta.textContent = hasPat ? 'PAT 已在本地，点击「清除」后可重新输入' : '仅在本地使用 PAT 写入 Gist';
+    }
+    if (patSaveBtn) {
+      patSaveBtn.disabled = hasPat || !patInput?.value.trim();
+    }
+  }
+
+  if (patInput) {
+    patInput.addEventListener('input', syncPatState);
+  }
+
+  syncPatState();
 
   if (patSaveBtn && patInput) {
     patSaveBtn.addEventListener('click', () => {
@@ -176,19 +276,38 @@ function bindToolbar() {
       if (!v) { alert('请输入 PAT'); return; }
       localStorage.setItem('gh_pat', v);
       toast('PAT 已保存到本地');
+      syncPatState();
     });
   }
 
   if (patClearBtn && patInput) {
     patClearBtn.addEventListener('click', () => {
+      if (!confirm('确定清除本地保存的 PAT？清除后无法写入 Gist。')) return;
       localStorage.removeItem('gh_pat');
-      patInput.value = '';
       toast('已清除本地 PAT');
+      syncPatState();
+    });
+  }
+
+  if (patToggle && patInput) {
+    patToggle.addEventListener('click', () => {
+      const isHidden = patInput.type === 'password';
+      patInput.type = isHidden ? 'text' : 'password';
+      patToggle.setAttribute('aria-label', isHidden ? '隐藏 PAT' : '显示 PAT');
+      patToggle.textContent = isHidden ? '🙈' : '👁';
     });
   }
 
   if (newBtn) {
     newBtn.addEventListener('click', () => {
+      const titleEl = $('#title');
+      const bodyEl = $('#body');
+      const hasContent = editingFilename ||
+        (titleEl && titleEl.value.trim()) ||
+        (bodyEl && bodyEl.value.trim());
+      if (hasContent && !confirm('点击「新建」会清空当前表单，未保存的内容将丢失。确认继续？')) {
+        return;
+      }
       editingFilename = null;
       setForm({});
     });
@@ -216,27 +335,10 @@ function bindTable() {
     const filename = btn.dataset.file;
 
     if (act === 'edit') {
-      // 拉取原文并解析 Front Matter
       const md = await Gist.getPostFile(filename);
-      const fm = /^---([\s\S]*?)---\n?([\s\S]*)$/m.exec(md);
-      let meta = { body: md };
-      if (fm) {
-        const yaml = fm[1].trim();
-        const body = fm[2];
-        meta = { body };
-        yaml.split(/\n+/).forEach(line => {
-          const i = line.indexOf(':');
-          if (i > 0) {
-            const k = line.slice(0, i).trim();
-            let v = line.slice(i + 1).trim();
-            if (v.startsWith('[') && v.endsWith(']')) {
-              try { v = JSON.parse(v.replace(/([a-zA-Z0-9_\-]+)(?=\s*,|\s*\])/g, '"$1"')); } catch {}
-            }
-            meta[k] = v;
-          }
-        });
-      }
-      setForm(meta);
+      const post = currentPosts.find(p => p.filename === filename) || {};
+      const fmStripped = md.replace(/^---[\s\S]*?---\n?/, '');
+      setForm({ ...post, body: fmStripped }, filename);
       editingFilename = filename;
     }
 

@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="res/css/index.css">
 </head>
 
-<body>
+<body class="dark-mode">
     <!-- 主页内容容器 -->
     <main class="content-container page" id="main-page">
         <h1 class="sr-only">baaaaaaaaad(9A认证)</h1>
@@ -54,7 +54,7 @@
 
     <!-- 导航容器 -->
     <div class="navigation-container">
-        <button id="theme-toggle" class="navigation-icon" aria-label="切换主题" aria-pressed="false" aria-expanded="false" aria-controls="search-container page-toggle" aria-keyshortcuts="Shift+T" title="单击切换主题，双击或 Shift+T 显示/隐藏搜索和列表按钮"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>
+        <button id="theme-toggle" class="navigation-icon" aria-label="切换主题" aria-pressed="false" aria-expanded="false" aria-controls="search-container page-toggle" aria-keyshortcuts="Shift+T" title="单击切换主题，双击全屏，三击或 Shift+T 显示/隐藏搜索和列表按钮"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>
         <button id="page-toggle" class="navigation-icon" title="文章列表" data-page="home" aria-label="查看文章列表">
             <svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
                 <path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v10h14V7H5Zm2 2h4v2H7V9Zm0 4h6v2H7v-2Zm8-4h2v2h-2V9Zm0 4h2v2h-2v-2Z"/>
@@ -92,6 +92,7 @@
     <link rel="preload" href="res/icon/bing-color.svg" as="image" type="image/svg+xml">
     <link rel="preload" href="res/icon/baidu-color.svg" as="image" type="image/svg+xml">
     <link rel="preload" href="res/icon/google-color.svg" as="image" type="image/svg+xml">
+    <script src="res/js/sw-register.js" defer></script>
 </body>
 
 </html>
