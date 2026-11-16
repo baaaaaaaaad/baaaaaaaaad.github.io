@@ -2,6 +2,7 @@
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 import { setupThemeToggle } from './theme.js';
+import { renderNav } from './nav.js';
 
 // 页面状态（内存中即可）
 const state = {
@@ -179,6 +180,7 @@ async function main() {
   }
 }
 
+renderNav('posts');
 setupThemeToggle();
 
 main().catch(err => {

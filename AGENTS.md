@@ -87,7 +87,7 @@ npx --yes serve .
 │     ├─ post.js              # 详情页入口：渲染 Markdown、元信息与上下篇导航
 │     ├─ admin.js             # 管理页入口：新建 / 编辑 / 删除
 │     ├─ theme.js             # 首页 / 文章列表 / 搜索 / 管理页共用的主题切换模块
-│     ├─ nav.js               # 详情页与管理页共用的导航条（经典脚本，非模块）
+│     ├─ nav.js               # 全站共享导航渲染器（ES Module，floating / bar 变体）
 │     ├─ sw-register.js       # 全站共用的 SW 注册脚本（经典脚本，defer）
 │     └─ vendor/
 │        ├─ marked.min.js     # Markdown 渲染器（本地 UMD 构建，暴露全局 marked）
@@ -100,11 +100,11 @@ npx --yes serve .
 
 页面加载关系（修改时保持一致）：
 
-- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）。首页导航与主题按钮均为静态 HTML，不需要 `nav.js`。
-- `posts.html`：`res/css/index.css` + `type="module"` 的 `res/js/posts.js` + `res/js/sw-register.js`（defer）。列表页导航为静态 HTML，不加载 `nav.js`。
-- `search.html`：`res/css/index.css` + `type="module"` 的 `res/js/search.js` + `res/js/sw-register.js`（defer）。搜索引擎图标为 `<button>`，可拖拽排序。
-- `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。`nav.js` 仅在详情页注入主题按钮与搜索入口，`post.js` 在 `DOMContentLoaded` 后从 `theme.js` 初始化主题。
-- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。主题切换由 `admin.js` 从 `theme.js` 导入 `setupThemeToggle` 并单级调用。
+- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）。导航由 `index.js` 导入 `nav.js` 的 `renderNav('index')` 渲染。
+- `posts.html`：`res/css/index.css` + `type="module"` 的 `res/js/posts.js` + `res/js/sw-register.js`（defer）。导航由 `posts.js` 导入 `nav.js` 渲染。
+- `search.html`：`res/css/index.css` + `type="module"` 的 `res/js/search.js` + `res/js/sw-register.js`（defer）。搜索引擎图标为 `<button>`，可拖拽排序；导航由 `search.js` 导入 `nav.js` 渲染。
+- `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。`post.js` 导入 `nav.js` 渲染 floating 导航，并在 `DOMContentLoaded` 后从 `theme.js` 初始化主题。
+- `admin.html`：`res/css/index.css` + `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。`admin.js` 先渲染共享导航，再调用 `setupThemeToggle`。
 
 不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。不要改回 CDN 加载 marked / DOMPurify。
 
@@ -152,10 +152,10 @@ npx --yes serve .
 ## 编码约定
 
 - 纯原生 JS，不引入框架、包管理器或打包流程；第三方库优先下载 UMD 构建到 `res/js/vendor/`，暴露全局变量后直接 `<script src>` 引用。**下载后必须验证文件内容**（Read 前几行确认有代码），不能只看文件存在——jsdelivr 等 CDN 偶尔返回 502 时 PowerShell 的 `Invoke-WebRequest` / `curl` 不会报错但会写 0 字节空文件，浏览器加载后全局变量 undefined，`post.js` 会触发「Markdown 渲染资源加载失败」提示。首选 unpkg.com 做下载源（`https://unpkg.com/<pkg>@<version>/<file>`）。
-- 入口脚本使用 ES Modules；`nav.js` 保持经典脚本，便于直接通过 `<script defer>` 加载。
+- 入口脚本使用 ES Modules；`nav.js` 也是 ES Module，由各页面入口导入并调用 `renderNav(page)`，不再通过独立 `<script>` 标签加载。
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
-- 首页与详情/管理页的布局通过 `body.post-page`、`body.admin-page` 隔离，不要破坏首页的 flex 居中布局。
+- 首页与文章列表/详情/管理页的布局通过 `body.posts-page`、`body.post-page`、`body.admin-page` 隔离，不要破坏首页的 flex 居中布局。
 - 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`，首页 / 文章列表页 / 搜索页 / 详情页 / 管理页默认 `<body class="dark-mode">` 防止刷新闪烁；JS 初始化若 localStorage 无值则回退到 `'dark'`。主题逻辑统一在 `res/js/theme.js`，`setupThemeToggle({ multiClick: true })` 仅在首页启用双击全屏，其余页面单击切换。
 - DOM 查询使用 `document.querySelector` 并保持空值判断；页面入口脚本只应操作本页存在的元素。
 - 缩进：CSS 4 空格；JS 2 空格。
@@ -213,13 +213,15 @@ npx --yes serve .
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
-- 详情页的 `#theme-toggle` 由 `nav.js` 在 `post-page` 下注入，`post.js` 必须等 `DOMContentLoaded` 后再调用 `setupThemeToggle`，否则按钮尚未插入。
+- 导航统一由 `res/js/nav.js` 的 `renderNav(page)` 渲染到各页的 `#site-nav`；`page` 支持 `index / posts / search / post / admin`，其中 `index / posts / search / post` 是 floating 变体，`admin` 是顶部 bar。不要在页面里重新写死导航或静态 `#theme-toggle`。
+- 必须保证先 `renderNav(...)` 再 `setupThemeToggle(...)`，否则主题按钮尚未插入；`post.js` 在 `DOMContentLoaded` 后初始化主题，其余入口在渲染后立即或同一初始化流程中调用。
+- `#site-nav` 为空占位，浮层导航由 `nav.js` 注入 `.navigation-container`，bar 变体注入 `#nav-container` + `.nav-bar`（当前仅管理页使用 bar）；`#back-home` 是普通链接，不再需要 click 绑定。
+- 文章列表页与详情页的横排浮层导航由 `.navigation-container.nav--horizontal` 控制，不要退回为页面类单独写一套导航 CSS。
 - 详情页上一篇/下一篇使用「已发布 + `created_at` 升序」列表定位，不要退回为直接取 `index.json` 原始数组的 `±1`，否则草稿和手动排序会污染导航。
 - 详情页渲染前会处理正文开头的 H1：与标题重复时移除，否则降级为 H2（`post.js` 的 `normalizeLeadingTitle`），避免一页出现两个 H1；正文其他位置的 H1 样式按 `article h1` 收敛。
 - 详情页 `#navigation` 默认带 `hidden`，只有存在上一篇/下一篇时才移除；`#next-post` 需要 `margin-left: auto` 才能单独靠右。
 - 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
 - 首页 `#page-toggle`（文章列表）与搜索页入口常显；`#theme-toggle` 在首页使用计数机制（250ms 内累计点击数）：单击=切换主题、双击=浏览器全屏，不再有第三击动作。不要改回即时 click 处理，否则双击时会先触发一次主题切换。
-- 文章列表页 `#theme-toggle` 通过 `theme.js` 单击切换主题（不做计数），列表页没有全屏入口。
 - 文章列表页 / 搜索页 / 详情页 / 管理页的 `#theme-toggle` 通过 `theme.js` 单击切换主题（不做计数），搜索页与详情页没有全屏入口。
 - `theme.js` 的 `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
 - 时钟跳动动画依赖 `void el.offsetWidth` 强制 reflow 来重触发同名 CSS animation；移除动画类后不加 reflow 直接 `classList.add` 不会产生动画。`.clock .char[class*="char-jump"] { transition: none }` 在动画期间禁用元素上的 `transition: all`，两者缺一不可。
@@ -243,7 +245,7 @@ npx --yes serve .
 
 1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
 2. 主题按钮：首页单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；不再有三击/`Shift+T` 显隐动作。
-3. 首页点击文章列表图标进入 `posts.html`：标签筛选、搜索、分页正常；列表页右上角可返回首页或进入搜索页。
+3. 首页点击文章列表图标进入 `posts.html`：标签筛选、搜索、分页正常；列表页右上角可返回首页或进入搜索页。各页导航都应由 `renderNav` 渲染，每页只有一个 `#theme-toggle`，主题按钮可用。
 4. `search.html`：输入关键词回车使用排序第一的引擎，点击图标使用对应引擎；空输入会提示且不跳转；清空按钮与 `Esc` 行为正常；拖拽图标可调整顺序，刷新后保持（`localStorage.searchEngineOrder`），输入框有内容时禁止拖拽；图标可用键盘 Tab 聚焦并回车触发。
 5. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`：首屏暗色，右上角主题按钮可切换且与首页共享 `localStorage.theme`；标题、日期（`YYYY.MM.DD`）与标签正常，标签为空时没有多余分隔符；正文的标题、列表、引用、代码块、表格与图片按阅读宽度排版，窄屏下 `pre` / 表格横向滚动而不撑破页面；上一篇/下一篇只在存在时显示，单独“下一篇”靠右，没有上下篇时底部不出现空分隔线。`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
 6. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
@@ -253,6 +255,6 @@ npx --yes serve .
    文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
    窄屏下表格出现横向滚动条（列不被挤压变形）；Toast 显示在顶部居中（软键盘弹出时不被遮挡）。
    新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
-7. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v4` 和 `dynamic-v4`；离线模式下刷新任意页面（含 `posts.html`、`search.html` 与 `post.html?slug=...`），静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
+7. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v5` 和 `dynamic-v5`；离线模式下刷新任意页面（含 `posts.html`、`search.html` 与 `post.html?slug=...`），静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
 8. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
 9. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。

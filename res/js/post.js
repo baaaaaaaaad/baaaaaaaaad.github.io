@@ -6,6 +6,9 @@
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 import { setupThemeToggle } from './theme.js';
+import { renderNav } from './nav.js';
+
+renderNav('post');
 
 /** 读取 URL 查询参数 */
 function getQuery(name) {

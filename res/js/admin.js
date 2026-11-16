@@ -7,7 +7,9 @@
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
 import { setupThemeToggle } from './theme.js';
+import { renderNav } from './nav.js';
 
+renderNav('admin');
 setupThemeToggle();
 
 /** DOM 快捷选择 */

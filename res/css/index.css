@@ -1079,7 +1079,7 @@ body.admin-page main {
 }
 
 body.post-page header {
-    padding-top: 30px;
+    padding-top: 90px;
 }
 
 body.post-page #meta,
@@ -1265,7 +1265,7 @@ body.post-page article img {
     text-decoration: underline;
 }
 
-body.post-page .nav-theme-toggle {
+.nav-theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1281,7 +1281,7 @@ body.post-page .nav-theme-toggle {
     transition: background-color 0.2s ease;
 }
 
-body.post-page .nav-theme-toggle:hover {
+.nav-theme-toggle:hover {
     background: var(--search-bg);
 }
 
@@ -1451,7 +1451,7 @@ body.admin-page #toast {
 }
 
 /* 文章列表页导航横向排列，避免遮挡筛选区 */
-body.posts-page .navigation-container {
+.navigation-container.nav--horizontal {
     flex-direction: row;
 }
 
@@ -1460,6 +1460,10 @@ body.posts-page #article-page {
 }
 
 @media (max-width: 768px) {
+    body.post-page header {
+        padding-top: 70px;
+    }
+
     body.posts-page #article-page {
         padding-top: 70px;
     }

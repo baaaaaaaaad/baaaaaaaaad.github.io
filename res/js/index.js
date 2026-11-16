@@ -1,6 +1,9 @@
 // 首页逻辑：时钟、日期、今日进度与主题切换。
 // 文章列表页由 posts.js 加载；详情页与管理页分别由 post.js、admin.js 加载。
 import { setupThemeToggle } from './theme.js';
+import { renderNav } from './nav.js';
+
+renderNav('index');
 
 // 存储上一次的时间字符串，用于比较时间是否变化
 let prevTimeStr = '';

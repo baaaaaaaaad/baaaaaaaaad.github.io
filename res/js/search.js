@@ -1,5 +1,6 @@
 // 搜索页：外部搜索引擎输入、图标排序与回车搜索
 import { setupThemeToggle } from './theme.js';
+import { renderNav } from './nav.js';
 
 const ORDER_KEY = 'searchEngineOrder';
 const ENGINE_URLS = {
@@ -115,6 +116,7 @@ function setupDragAndDrop() {
 }
 
 function init() {
+  renderNav('search');
   setupThemeToggle();
   setupDragAndDrop();
 

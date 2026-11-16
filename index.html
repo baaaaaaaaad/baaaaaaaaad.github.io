@@ -30,21 +30,8 @@
         </div>
     </main>
 
-    <!-- 导航容器 -->
-    <div class="navigation-container">
-        <button id="theme-toggle" class="navigation-icon" aria-label="切换主题" aria-pressed="false" title="单击切换主题，双击全屏"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>
-        <a href="search.html" class="navigation-icon" aria-label="打开搜索页" title="搜索">
-            <svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
-                <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-            </svg>
-        </a>
-        <a href="posts.html" class="navigation-icon" aria-label="查看文章列表" title="文章列表">
-            <svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-                <path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v10h14V7H5Zm2 2h4v2H7V9Zm0 4h6v2H7v-2Zm8-4h2v2h-2V9Zm0 4h2v2h-2v-2Z"/>
-            </svg>
-        </a>
-    </div>
+    <!-- 导航由 res/js/nav.js 统一渲染 -->
+    <div id="site-nav"></div>
 
     <script type="module" src="res/js/index.js"></script>
     <script src="res/js/sw-register.js" defer></script>
