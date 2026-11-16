@@ -1258,7 +1258,7 @@ body.admin-page #toast {
     top: 30px;
     transform: translateX(-50%);
     background: var(--accent-color);
-    color: #fff;
+    color: var(--bg-color);
     padding: 10px 18px;
     border-radius: 20px;
     opacity: 0;
