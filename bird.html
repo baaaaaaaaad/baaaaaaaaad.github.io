@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北冥有鲲</title>
+<style>
+  html, body { margin: 0; height: 100%; background: rgb(239,231,212); overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  const N = 3000;                 // 小鸟数量
+  const PAPER = '239,231,212';    // 宣纸底色
+  const INK = '28,28,30';         // 墨色
+
+  // 固定种子的随机数，每次打开形状一致
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rand = mulberry32(20261116);
+  const clamp = (x, lo, hi) => x < lo ? lo : (x > hi ? hi : x);
+
+  // ===== 鲲的轮廓（局部坐标：u 沿身长，头在右；v 为上下）=====
+  function inFish(u, v) {
+    // 身体
+    if (u > -0.55 && u < 0.92) {
+      const t = (u - 0.18) / 0.74;
+      const hw = 0.44 * Math.sqrt(Math.max(0, 1 - t * t));
+      if (Math.abs(v) <= hw) return true;
+    }
+    // 尾鳍（向外展开）
+    if (u <= -0.55 && u >= -1.0) {
+      const k = (-0.55 - u) / 0.45;
+      if (Math.abs(v) <= 0.1 + 0.42 * k) return true;
+    }
+    // 背鳍
+    if (v <= -0.4 && v >= -0.85) {
+      const f = (-v - 0.4) / 0.45;
+      const l = -0.12 + f * 0.10, r = 0.38 - f * 0.40;
+      if (u >= l && u <= r) return true;
+    }
+    // 胸鳍
+    if (v >= 0.12 && v <= 0.5) {
+      const f = (v - 0.12) / 0.38;
+      const l = 0.3 - f * 0.2, r = 0.45 - f * 0.25;
+      if (u >= l && u <= r) return true;
+    }
+    return false;
+  }
+
+  // 在鲲的轮廓内采样目标点：轮廓边缘多取，内部少取，形状更清晰
+  const TU = new Float32Array(N), TV = new Float32Array(N);
+  {
+    let count = 0, guard = 0;
+    while (count < N && guard++ < 5e6) {
+      const u = -1.02 + rand() * 1.97;
+      const v = -0.9 + rand() * 1.45;
+      if (!inFish(u, v)) continue;
+      const e = 0.03;
+      const edge = !inFish(u + e, v) || !inFish(u - e, v) || !inFish(u, v + e) || !inFish(u, v - e);
+      if (!edge && rand() > 0.3) continue;
+      TU[count] = u; TV[count] = v; count++;
+    }
+    for (let i = count; i < N; i++) { TU[i] = TU[i % count]; TV[i] = TV[i % count]; }
+  }
+
+  // ===== 画布与布局 =====
+  let W, H, DPR, S, CX, CY, K;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    S = Math.min(W * 0.36, H * 0.5);     // 鲲的整体尺度
+    CX = W * 0.5 + S * 0.04;             // 让鲲在画面中居中
+    CY = H * 0.5 + S * 0.17;
+    K = S / 450;                          // 速度与半径的缩放系数
+    ctx.fillStyle = `rgb(${PAPER})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ===== 小鸟状态 =====
+  const PX = new Float32Array(N), PY = new Float32Array(N);
+  const VX = new Float32Array(N), VY = new Float32Array(N);
+  const AX = new Float32Array(N), AY = new Float32Array(N);
+  const Z  = new Float32Array(N);       // 远近，影响大小与浓淡
+  const TX = new Float32Array(N), TY = new Float32Array(N);
+  const TVX = new Float32Array(N), TVY = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    PX[i] = rand() * W; PY[i] = rand() * H;     // 从四面散开，逐渐汇集成鲲
+    VX[i] = (rand() - 0.5) * 2; VY[i] = (rand() - 0.5) * 2;
+    Z[i] = 0.35 + 0.65 * rand();
+  }
+
+  let mouse = null;
+  canvas.addEventListener('pointermove', e => { mouse = { x: e.clientX, y: e.clientY }; });
+  canvas.addEventListener('pointerleave', () => { mouse = null; });
+
+  let time = 0, last = performance.now();
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    time += dt;
+
+    // ----- 1. 计算每只鸟当前的目标位置（鲲在游动、呼吸、缓慢漂移）-----
+    for (let i = 0; i < N; i++) {
+      const u = TU[i], v = TV[i];
+      const amp = 0.025 + 0.07 * Math.max(0, -u);   // 尾部摆动更大
+      const ph = u * 5.0 - time * 2.2;
+      const br = 1 + 0.025 * Math.sin(time * 0.9);   // 轻微呼吸
+      const drift = Math.sin(time * 0.2) * S * 0.03; // 缓慢左右漂移
+      TX[i] = CX + u * S * br + drift;
+      TY[i] = CY + (v + Math.sin(ph) * amp) * S * br;
+      // 目标的速度（像素/帧），让小鸟顺着轮廓流动
+      TVX[i] = S * 0.03 * 0.2 * Math.cos(time * 0.2) / 60;
+      TVY[i] = -2.2 * amp * Math.cos(ph) * S * br / 60;
+    }
+
+    // ----- 2. 空间分桶，加速邻居查找 -----
+    const cs = 38 * K;               // 感知半径
+    const cols = Math.ceil(W / cs) + 2;
+    const rows = Math.ceil(H / cs) + 2;
+    const cellOf = new Int32Array(N);
+    const counts = new Int32Array(cols * rows + 1);
+    const order = new Int32Array(N);
+    for (let i = 0; i < N; i++) {
+      const gx = clamp(Math.floor(PX[i] / cs) + 1, 0, cols - 1);
+      const gy = clamp(Math.floor(PY[i] / cs) + 1, 0, rows - 1);
+      const c = gy * cols + gx;
+      cellOf[i] = c; counts[c + 1]++;
+    }
+    for (let c = 1; c < counts.length; c++) counts[c] += counts[c - 1];
+    const fillPos = counts.slice(0, cols * rows);
+    for (let i = 0; i < N; i++) order[fillPos[cellOf[i]]++] = i;
+
+    // ----- 3. 计算每只鸟受到的力 -----
+    const P2 = cs * cs;
+    const SEP = 11 * K, SEP2 = SEP * SEP;
+
+    for (let i = 0; i < N; i++) {
+      const x0 = PX[i], y0 = PY[i];
+      const gx = clamp(Math.floor(x0 / cs) + 1, 0, cols - 1);
+      const gy = clamp(Math.floor(y0 / cs) + 1, 0, rows - 1);
+
+      let n = 0, ax = 0, ay = 0;
+      let alx = 0, aly = 0, cxs = 0, cys = 0, sx = 0, sy = 0;
+
+      for (let oy = -1; oy <= 1; oy++) {
+        const yy = gy + oy; if (yy < 0 || yy >= rows) continue;
+        for (let ox = -1; ox <= 1; ox++) {
+          const xx = gx + ox; if (xx < 0 || xx >= cols) continue;
+          const c = yy * cols + xx;
+          for (let k = counts[c]; k < counts[c + 1]; k++) {
+            const j = order[k];
+            if (j === i) continue;
+            const dx = PX[j] - x0, dy = PY[j] - y0;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < P2) {
+              n++;
+              alx += VX[j]; aly += VY[j];   // 对齐
+              cxs += PX[j]; cys += PY[j];   // 聚合
+              if (d2 < SEP2) {              // 分离
+                const d = Math.sqrt(d2) + 0.01;
+                const f = (SEP - d) / d;
+                sx -= dx * f; sy -= dy * f;
+              }
+            }
+          }
+        }
+      }
+
+      if (n > 0) {
+        ax += (alx / n - VX[i]) * 0.05;
+        ay += (aly / n - VY[i]) * 0.05;
+        ax += (cxs / n - x0) * 0.003;
+        ay += (cys / n - y0) * 0.003;
+      }
+      ax += sx * 0.05;
+      ay += sy * 0.05;
+
+      // 追随鲲的轮廓：目标速度 + 位置偏差
+      ax += (TVX[i] + (TX[i] - x0) * 0.04 - VX[i]) * 0.08;
+      ay += (TVY[i] + (TY[i] - y0) * 0.04 - VY[i]) * 0.08;
+
+      // 轻微随机扰动，避免过于机械
+      ax += (rand() - 0.5) * 0.05;
+      ay += (rand() - 0.5) * 0.05;
+
+      // 鼠标/触摸会惊动鸟群
+      if (mouse) {
+        const mx = x0 - mouse.x, my = y0 - mouse.y;
+        const md = Math.hypot(mx, my);
+        const R = 110 * K;
+        if (md < R && md > 0.1) {
+          const f = (R - md) / R * 0.6;
+          ax += mx / md * f; ay += my / md * f;
+        }
+      }
+
+      AX[i] = ax; AY[i] = ay;
+    }
+
+    // ----- 4. 更新速度与位置 -----
+    const maxS = 2.8 * K, minS = 1.3 * K;
+    for (let i = 0; i < N; i++) {
+      VX[i] += AX[i]; VY[i] += AY[i];
+      const sp = Math.hypot(VX[i], VY[i]);
+      if (sp > maxS) { VX[i] *= maxS / sp; VY[i] *= maxS / sp; }
+      else if (sp < minS && sp > 1e-4) { VX[i] *= minS / sp; VY[i] *= minS / sp; }
+      PX[i] += VX[i]; PY[i] += VY[i];
+    }
+
+    // ----- 5. 绘制：宣纸晕染 + 墨日 + 墨雾 + 小鸟 -----
+    // 半透明底色覆盖，形成墨迹拖尾
+    ctx.fillStyle = `rgba(${PAPER},0.16)`;
+    ctx.fillRect(0, 0, W, H);
+
+    // 墨日（淡淡的晕染）
+    const sunX = W * 0.8, sunY = H * 0.2, sunR = Math.min(W, H) * 0.08;
+    const sg = ctx.createRadialGradient(sunX, sunY, sunR * 0.6, sunX, sunY, sunR);
+    sg.addColorStop(0, `rgba(${INK},0.05)`);
+    sg.addColorStop(1, `rgba(${INK},0)`);
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2); ctx.fill();
+
+    // 低处的墨雾
+    const mx0 = W * 0.5 + Math.sin(time * 0.1) * W * 0.1;
+    const mg = ctx.createRadialGradient(mx0, H * 0.85, 0, mx0, H * 0.85, W * 0.6);
+    mg.addColorStop(0, `rgba(${INK},0.025)`);
+    mg.addColorStop(1, `rgba(${INK},0)`);
+    ctx.fillStyle = mg;
+    ctx.fillRect(0, 0, W, H);
+
+    // 小鸟：短线条表示，远近用粗细和浓淡区分
+    ctx.lineCap = 'round';
+    for (let i = 0; i < N; i++) {
+      const z = Z[i];
+      const sp = Math.hypot(VX[i], VY[i]) || 1;
+      const L = (3 + 3 * z) * K;
+      const ux = VX[i] / sp, uy = VY[i] / sp;
+      ctx.lineWidth = (0.8 + 1.2 * z) * K;
+      ctx.strokeStyle = `rgba(${INK},${(0.25 + 0.6 * z).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.moveTo(PX[i], PY[i]);
+      ctx.lineTo(PX[i] - ux * L, PY[i] - uy * L);
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
