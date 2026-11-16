@@ -1,10 +1,11 @@
-const STATIC_CACHE = 'static-v3';
-const DYNAMIC_CACHE = 'dynamic-v3';
+const STATIC_CACHE = 'static-v4';
+const DYNAMIC_CACHE = 'dynamic-v4';
 
 const STATIC_ASSETS = [
   './',
   'index.html',
   'search.html',
+  'posts.html',
   'post.html',
   'admin.html',
   'res/css/index.css',
@@ -12,6 +13,7 @@ const STATIC_ASSETS = [
   'res/js/gist.js',
   'res/js/index.js',
   'res/js/search.js',
+  'res/js/posts.js',
   'res/js/post.js',
   'res/js/admin.js',
   'res/js/theme.js',

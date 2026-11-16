@@ -478,14 +478,16 @@ body.dark-mode .day-progress-fill {
     height: 20px;
 }
 
-/* 页面切换样式 */
+/* 文章列表页面样式 */
 #article-page {
-    display: none;
+    display: block;
     width: 100%;
     min-height: 100vh;
     padding: 60px 20px 20px;
     animation: fadeIn 0.5s ease-in-out;
     background: var(--bg-color);
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 #main-page {
@@ -536,11 +538,6 @@ body.dark-mode .day-progress-fill {
     display: flex;
     gap: 15px;
 }
-
-.admin-link {
-    display: none;
-}
-
 
 /* 暗色主题 */
 body.dark-mode {
@@ -661,10 +658,8 @@ html.theme-transitioning body * {
 }
 
 /* 文章列表页面样式 */
-#article-page {
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
+body.posts-page {
+    display: block;
 }
 
 .article-header {
@@ -1453,4 +1448,19 @@ body.admin-page #toast {
     pointer-events: none;
     z-index: 100;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 文章列表页导航横向排列，避免遮挡筛选区 */
+body.posts-page .navigation-container {
+    flex-direction: row;
+}
+
+body.posts-page #article-page {
+    padding-top: 90px;
+}
+
+@media (max-width: 768px) {
+    body.posts-page #article-page {
+        padding-top: 70px;
+    }
 }
