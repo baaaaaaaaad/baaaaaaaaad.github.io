@@ -1121,6 +1121,183 @@ body.post-page #navigation a {
     text-decoration: none;
 }
 
+/* 详情页阅读排版 */
+body.post-page #nav-container,
+body.post-page header,
+body.post-page main {
+    max-width: 760px;
+}
+
+body.post-page #post-title {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0.4em 0 0.5em;
+}
+
+body.post-page article {
+    line-height: 1.8;
+}
+
+body.post-page article > :first-child {
+    margin-top: 0;
+}
+
+body.post-page article h1 {
+    font-size: 1.6rem;
+    line-height: 1.35;
+    margin: 1.6em 0 0.6em;
+}
+
+body.post-page article h2,
+body.post-page article h3,
+body.post-page article h4 {
+    line-height: 1.35;
+    margin: 1.8em 0 0.6em;
+}
+
+body.post-page article h2 {
+    font-size: 1.45rem;
+}
+
+body.post-page article h3 {
+    font-size: 1.2rem;
+}
+
+body.post-page article h4 {
+    font-size: 1.05rem;
+}
+
+body.post-page article p {
+    margin: 0.9em 0;
+}
+
+body.post-page article ul,
+body.post-page article ol {
+    margin: 0.9em 0;
+    padding-left: 1.4em;
+}
+
+body.post-page article li + li {
+    margin-top: 0.35em;
+}
+
+body.post-page article a {
+    color: var(--accent-color);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+
+body.post-page article a:hover {
+    color: var(--hover-color);
+}
+
+body.post-page article code {
+    background: var(--search-bg);
+    padding: 0.15em 0.35em;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+body.post-page article pre {
+    background: var(--search-bg);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.6;
+}
+
+body.post-page article pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+body.post-page article blockquote {
+    margin: 1.4em 0;
+    padding: 0.2em 0 0.2em 14px;
+    border-left: 3px solid var(--accent-color);
+    color: var(--secondary-text);
+}
+
+body.post-page article blockquote p {
+    margin: 0.4em 0;
+}
+
+body.post-page article table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 1.4em 0;
+}
+
+body.post-page article th,
+body.post-page article td {
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    text-align: left;
+}
+
+body.post-page article th {
+    background: var(--search-bg);
+}
+
+body.post-page article hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 2em 0;
+}
+
+body.post-page article img {
+    display: block;
+    margin: 1.5em auto;
+    border-radius: 8px;
+}
+
+/* 详情页导航 */
+.nav-links {
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+body.post-page .nav-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    overflow: hidden;
+    transition: background-color 0.2s ease;
+}
+
+body.post-page .nav-theme-toggle:hover {
+    background: var(--search-bg);
+}
+
+body.post-page #navigation[hidden] {
+    display: none;
+}
+
+body.post-page #next-post {
+    margin-left: auto;
+}
+
 body.admin-page section {
     margin-bottom: 40px;
 }
