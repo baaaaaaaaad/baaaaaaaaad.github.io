@@ -1,4 +1,4 @@
-// 全站共享导航渲染器：floating 图标导航与详情/管理页顶部 bar。
+// 全站共享导航渲染器：各页统一使用 floating 图标导航。
 const ICONS = {
   home: `<svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
     <path fill="currentColor" d="M12 3.2 2.8 11h2.4v9h5v-5.6h3.6V20h5v-9h2.4L12 3.2Z"/>
@@ -17,43 +17,30 @@ const ICONS = {
 
 const LINKS = {
   home: { href: 'index.html', label: '返回首页', title: '首页', icon: 'home' },
-  search: { href: 'search.html', label: '打开搜索页', title: '搜索', icon: 'search', text: '搜索' },
+  search: { href: 'search.html', label: '打开搜索页', title: '搜索', icon: 'search' },
   posts: { href: 'posts.html', label: '查看文章列表', title: '文章列表', icon: 'posts' },
-  admin: { href: 'admin.html', label: '管理', title: '管理', icon: 'admin', text: '管理' }
+  admin: { href: 'admin.html', label: '管理', title: '管理', icon: 'admin' }
 };
 
 const PAGES = {
-  index: { layout: 'floating', items: ['theme', 'search', 'posts'], themeTitle: '单击切换主题，双击全屏' },
-  posts: { layout: 'floating', horizontal: true, items: ['theme', 'home', 'search'] },
-  search: { layout: 'floating', items: ['theme', 'home'] },
-  post: { layout: 'floating', horizontal: true, items: ['theme', 'home', 'search', 'admin'] },
-  admin: { layout: 'bar', items: ['home', 'admin', 'theme'] }
+  index: { items: ['theme', 'search', 'posts'], themeTitle: '单击切换主题，双击全屏' },
+  posts: { items: ['theme', 'home', 'search'], horizontal: true },
+  search: { items: ['theme', 'home'] },
+  post: { items: ['theme', 'search', 'home', 'admin'] },
+  admin: { items: ['theme', 'search', 'home'] }
 };
 
-function themeButton(className, title) {
-  return `<button id="theme-toggle" class="${className}" aria-label="切换主题" aria-pressed="false" title="${title}"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>`;
-}
-
-function isCurrent(name, page) {
-  return name === page || (page === 'index' && name === 'home');
+function themeButton(title) {
+  return `<button id="theme-toggle" class="navigation-icon" aria-label="切换主题" aria-pressed="false" title="${title}"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>`;
 }
 
 function floatingItem(name, page) {
   if (name === 'theme') {
-    return themeButton('navigation-icon', PAGES[page].themeTitle || '单击切换主题');
+    return themeButton(PAGES[page].themeTitle || '单击切换主题');
   }
   const link = LINKS[name];
   if (!link) return '';
-  const current = isCurrent(name, page) ? ' aria-current="page"' : '';
-  return `<a href="${link.href}" class="navigation-icon" aria-label="${link.label}" title="${link.title}"${current}>${ICONS[link.icon]}</a>`;
-}
-
-function barItem(name, page) {
-  if (name === 'theme') return themeButton('nav-theme-toggle', '切换主题');
-  const link = LINKS[name];
-  if (!link) return '';
-  const current = isCurrent(name, page) ? ' aria-current="page"' : '';
-  return `<a href="${link.href}"${current}>${link.text || link.title}</a>`;
+  return `<a href="${link.href}" class="navigation-icon" aria-label="${link.label}" title="${link.title}">${ICONS[link.icon]}</a>`;
 }
 
 function renderFloating(page) {
@@ -64,21 +51,9 @@ function renderFloating(page) {
   return `<nav class="${classes.join(' ')}" aria-label="站点导航">${items}</nav>`;
 }
 
-function renderBar(page) {
-  const config = PAGES[page];
-  const rightItems = config.items.filter(name => name !== 'home').map(name => barItem(name, page)).join('');
-  return `<div id="nav-container">
-    <nav class="nav-bar" aria-label="站点导航">
-      <a id="back-home" class="back-home-button" href="index.html">← 首页</a>
-      <div class="nav-links">${rightItems}</div>
-    </nav>
-  </div>`;
-}
-
 /** 按页面渲染导航，需在初始化主题前调用 */
 export function renderNav(page) {
   const root = document.getElementById('site-nav');
-  const config = PAGES[page];
-  if (!root || !config) return;
-  root.innerHTML = config.layout === 'bar' ? renderBar(page) : renderFloating(page);
+  if (!root || !PAGES[page]) return;
+  root.innerHTML = renderFloating(page);
 }

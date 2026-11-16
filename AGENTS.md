@@ -87,7 +87,7 @@ npx --yes serve .
 │     ├─ post.js              # 详情页入口：渲染 Markdown、元信息与上下篇导航
 │     ├─ admin.js             # 管理页入口：新建 / 编辑 / 删除
 │     ├─ theme.js             # 首页 / 文章列表 / 搜索 / 管理页共用的主题切换模块
-│     ├─ nav.js               # 全站共享导航渲染器（ES Module，floating / bar 变体）
+│     ├─ nav.js               # 全站共享导航渲染器（ES Module，floating 变体）
 │     ├─ sw-register.js       # 全站共用的 SW 注册脚本（经典脚本，defer）
 │     └─ vendor/
 │        ├─ marked.min.js     # Markdown 渲染器（本地 UMD 构建，暴露全局 marked）
@@ -213,10 +213,9 @@ npx --yes serve .
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
-- 导航统一由 `res/js/nav.js` 的 `renderNav(page)` 渲染到各页的 `#site-nav`；`page` 支持 `index / posts / search / post / admin`，其中 `index / posts / search / post` 是 floating 变体，`admin` 是顶部 bar。不要在页面里重新写死导航或静态 `#theme-toggle`。
-- 必须保证先 `renderNav(...)` 再 `setupThemeToggle(...)`，否则主题按钮尚未插入；`post.js` 在 `DOMContentLoaded` 后初始化主题，其余入口在渲染后立即或同一初始化流程中调用。
-- `#site-nav` 为空占位，浮层导航由 `nav.js` 注入 `.navigation-container`，bar 变体注入 `#nav-container` + `.nav-bar`（当前仅管理页使用 bar）；`#back-home` 是普通链接，不再需要 click 绑定。
-- 文章列表页与详情页的横排浮层导航由 `.navigation-container.nav--horizontal` 控制，不要退回为页面类单独写一套导航 CSS。
+- 导航统一由 `res/js/nav.js` 的 `renderNav(page)` 渲染到各页的 `#site-nav`；`page` 支持 `index / posts / search / post / admin`，全部使用 floating 变体。不要在页面里重新写死导航或静态 `#theme-toggle`。- 必须保证先 `renderNav(...)` 再 `setupThemeToggle(...)`，否则主题按钮尚未插入；`post.js` 在 `DOMContentLoaded` 后初始化主题，其余入口在渲染后立即或同一初始化流程中调用。
+- `#site-nav` 为空占位，`nav.js` 注入 `.navigation-container` 浮层导航；所有页面都通过该模块生成图标、主题按钮和链接。
+- 文章列表页固定为横排；详情页和管理页默认纵排，在窄屏（详情 ≤920px、管理 ≤1100px）回退为横排，避免固定纵排遮挡正文或表单。不要退回为页面类单独写一套完整导航。
 - 详情页上一篇/下一篇使用「已发布 + `created_at` 升序」列表定位，不要退回为直接取 `index.json` 原始数组的 `±1`，否则草稿和手动排序会污染导航。
 - 详情页渲染前会处理正文开头的 H1：与标题重复时移除，否则降级为 H2（`post.js` 的 `normalizeLeadingTitle`），避免一页出现两个 H1；正文其他位置的 H1 样式按 `article h1` 收敛。
 - 详情页 `#navigation` 默认带 `hidden`，只有存在上一篇/下一篇时才移除；`#next-post` 需要 `margin-left: auto` 才能单独靠右。

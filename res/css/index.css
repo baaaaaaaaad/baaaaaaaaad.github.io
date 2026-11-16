@@ -534,11 +534,6 @@ body.dark-mode .day-progress-fill {
     }
 }
 
-.nav-links {
-    display: flex;
-    gap: 15px;
-}
-
 /* 暗色主题 */
 body.dark-mode {
     --bg-color: var(--dark-bg-color);
@@ -673,38 +668,6 @@ body.posts-page {
 .pagination-controls {
     justify-content: center;
     margin-top: 30px;
-}
-
-#nav-container {
-    margin-bottom: 30px;
-}
-
-.nav-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-#back-home,
-.back-home-button {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    border: none;
-    background: none;
-    color: var(--accent-color);
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-#back-home:hover {
-    background: var(--search-bg);
 }
 
 .controls {
@@ -1061,13 +1024,6 @@ body.admin-page {
     display: block;
 }
 
-body.post-page #nav-container,
-body.admin-page #nav-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px 20px 0;
-}
-
 body.post-page header,
 body.post-page main,
 body.admin-page header,
@@ -1079,6 +1035,10 @@ body.admin-page main {
 }
 
 body.post-page header {
+    padding-top: 90px;
+}
+
+body.admin-page header {
     padding-top: 90px;
 }
 
@@ -1117,7 +1077,6 @@ body.post-page #navigation a {
 }
 
 /* 详情页阅读排版 */
-body.post-page #nav-container,
 body.post-page header,
 body.post-page main {
     max-width: 760px;
@@ -1251,40 +1210,6 @@ body.post-page article img {
 }
 
 /* 详情页导航 */
-.nav-links {
-    align-items: center;
-}
-
-.nav-links a {
-    color: var(--accent-color);
-    text-decoration: none;
-    font-size: 16px;
-}
-
-.nav-links a:hover {
-    text-decoration: underline;
-}
-
-.nav-theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text-color);
-    cursor: pointer;
-    overflow: hidden;
-    transition: background-color 0.2s ease;
-}
-
-.nav-theme-toggle:hover {
-    background: var(--search-bg);
-}
-
 body.post-page #navigation[hidden] {
     display: none;
 }
@@ -1460,11 +1385,25 @@ body.posts-page #article-page {
 }
 
 @media (max-width: 768px) {
-    body.post-page header {
+    body.post-page header,
+    body.admin-page header {
         padding-top: 70px;
     }
 
     body.posts-page #article-page {
         padding-top: 70px;
+    }
+}
+
+/* 内容页在窄屏回退为横排，避免固定纵排遮挡正文/表单 */
+@media (max-width: 920px) {
+    body.post-page .navigation-container {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 1100px) {
+    body.admin-page .navigation-container {
+        flex-direction: row;
     }
 }
