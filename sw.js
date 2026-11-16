@@ -1,21 +1,28 @@
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
 
 const STATIC_ASSETS = [
   './',
   'index.html',
+  'search.html',
   'post.html',
   'admin.html',
   'res/css/index.css',
   'res/js/config.js',
   'res/js/gist.js',
   'res/js/index.js',
+  'res/js/search.js',
   'res/js/post.js',
   'res/js/admin.js',
+  'res/js/theme.js',
   'res/js/nav.js',
+  'res/js/sw-register.js',
   'res/js/vendor/marked.min.js',
   'res/js/vendor/purify.min.js',
   'res/icon/rainbow.png',
+  'res/icon/bing-color.svg',
+  'res/icon/baidu-color.svg',
+  'res/icon/google-color.svg',
 ];
 
 self.addEventListener('install', (event) => {

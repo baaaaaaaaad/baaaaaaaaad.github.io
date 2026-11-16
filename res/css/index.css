@@ -352,6 +352,11 @@ body.dark-mode .day-progress-fill {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* 搜索框整体已有 focus-within 样式，输入框不再重复描边 */
+#search-input:focus-visible {
+    outline: none;
+}
+
 /* 清空按钮 */
 .search-clear {
     display: flex;
@@ -393,6 +398,7 @@ body.dark-mode .day-progress-fill {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
     text-decoration: none;
     margin-left: 5px;
     cursor: move;
@@ -415,11 +421,13 @@ body.dark-mode .day-progress-fill {
     object-fit: contain;
 }
 
-
-/* 首页默认隐藏搜索框与文章列表按钮，双击主题按钮切换 */
-body:not(.controls-visible) .search-container,
-body:not(.controls-visible) #page-toggle {
-    display: none;
+/* 搜索页提示文案 */
+.search-hint {
+    min-height: 20px;
+    margin: 10px 0 0;
+    text-align: center;
+    color: var(--secondary-text);
+    font-size: 14px;
 }
 
 /* 导航容器 */
@@ -441,9 +449,11 @@ body:not(.controls-visible) #page-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     background: transparent;
     border: none;
     color: var(--text-color);
+    text-decoration: none;
     cursor: pointer;
     font-size: 22px;
     transition: all 0.3s ease;

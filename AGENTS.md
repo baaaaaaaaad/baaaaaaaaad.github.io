@@ -52,18 +52,18 @@ npx --yes serve .
 
 ## 页面
 
-- `index.html`：首页时钟、搜索与文章列表（标签筛选、搜索、分页）。
+- `index.html`：首页时钟、日期、今日进度，以及文章列表入口（标签筛选、站内搜索、分页）。
+- `search.html`：外部搜索引擎页（Bing / 百度 / Google，图标可拖拽排序，顺序存 `localStorage.searchEngineOrder`）。
 - `post.html?slug=...`：文章详情页。
-- `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。三个页面共用主题偏好。
+- `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。
 
-三页都默认 `body.dark-mode`，首次访问显示暗色主题；主题状态存 `localStorage.theme`。右上角主题按钮行为：
+首页、搜索页、管理页默认 `body.dark-mode`，首次访问显示暗色主题；主题状态存 `localStorage.theme`。右上角主题按钮行为：
 
-- **首页**：单击延迟 250ms 切换主题（走 view-transition 圆形扩散），双击切换浏览器全屏，三击显示/隐藏搜索框与文章列表按钮。
-- **管理页**：单击切换主题（不做计数），同样走 view-transition 动画。
+- **首页**：单击延迟 250ms 切换主题（走 view-transition 圆形扩散），双击切换浏览器全屏。
+- **搜索页 / 管理页**：单击切换主题（不做计数），同样走 view-transition 动画。
+- **详情页**：目前未接入主题切换，沿用亮色样式。
 
-首页默认隐藏搜索框与文章列表按钮，`body.controls-visible` 控制显隐，状态存 `localStorage.indexControlsVisible`，键盘 `Shift+T` 也能切换。
-
-首页背景会按清晨、白天、黄昏、夜晚切换极淡的氛围色；日期下方显示「今日进度」；文章列表使用卡片、标签与入场动画。
+首页背景会按清晨、白天、黄昏、夜晚切换极淡的氛围色；日期下方显示「今日进度」；文章列表使用卡片、标签与入场动画。首页右上角固定显示主题、搜索页入口与文章列表三个按钮。
 
 ## 实际文件结构
 
@@ -71,6 +71,7 @@ npx --yes serve .
 .
 ├─ sw.js                       # Service Worker：静态资源 cache-first，HTML/Gist API network-first
 ├─ index.html                 # 首页 + 内嵌文章列表页
+├─ search.html                # 外部搜索引擎页
 ├─ post.html                  # 文章详情页
 ├─ admin.html                 # 管理页
 ├─ res/
@@ -79,11 +80,13 @@ npx --yes serve .
 │  └─ js/
 │     ├─ config.js            # 导出 CONFIG（GIST_ID / OWNER / SITE_* / PAGE_SIZE）
 │     ├─ gist.js              # GitHub API 封装、Mock 数据、Gist、Util
-│     ├─ index.js             # 首页入口：列表、时钟、主题、搜索、页面切换
+│     ├─ index.js             # 首页入口：列表、时钟、主题、页面切换
+│     ├─ search.js            # 搜索页入口：引擎选择、拖拽排序、回车搜索
 │     ├─ post.js              # 详情页入口：解析 Front Matter 并渲染 Markdown
 │     ├─ admin.js             # 管理页入口：新建 / 编辑 / 删除
+│     ├─ theme.js             # 首页 / 搜索页 / 管理页共用的主题切换模块
 │     ├─ nav.js               # 详情页与管理页共用的导航条（经典脚本，非模块）
-│     ├─ sw-register.js       # 三页共同的 SW 注册脚本（经典脚本，defer）
+│     ├─ sw-register.js       # 全站共用的 SW 注册脚本（经典脚本，defer）
 │     └─ vendor/
 │        ├─ marked.min.js     # Markdown 渲染器（本地 UMD 构建，暴露全局 marked）
 │        └─ purify.min.js     # XSS 过滤器（本地 UMD 构建，暴露全局 DOMPurify）
@@ -91,13 +94,14 @@ npx --yes serve .
 └─ .gitignore
 ```
 
-`config.js` 与 `gist.js` 是三个页面入口共享的模块；修改数据读写行为时只需改这两处。
+`config.js` 与 `gist.js` 是各页面入口共享的模块；`theme.js` 是首页 / 搜索页 / 管理页共享的主题模块。修改数据读写行为时只需改前两处。
 
 页面加载关系（修改时保持一致）：
 
 - `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）。首页导航与主题按钮均为静态 HTML，不需要 `nav.js`。
+- `search.html`：`res/css/index.css` + `type="module"` 的 `res/js/search.js` + `res/js/sw-register.js`（defer）。搜索引擎图标为 `<button>`，可拖拽排序。
 - `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。
-- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。右上角主题按钮为静态 HTML，主题切换逻辑内嵌在 `admin.js`（同模块内定义 `applyTheme/setTheme/setupThemeToggle`）。
+- `admin.html`：`res/css/index.css` + `res/js/nav.js`（defer）+ `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。主题切换由 `admin.js` 从 `theme.js` 导入 `setupThemeToggle` 并单级调用。
 
 不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。不要改回 CDN 加载 marked / DOMPurify。
 
@@ -149,7 +153,7 @@ npx --yes serve .
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
 - 首页与详情/管理页的布局通过 `body.post-page`、`body.admin-page` 隔离，不要破坏首页的 flex 居中布局。
-- 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`，三页默认 `<body class="dark-mode">` 防止刷新闪烁；JS 初始化若 localStorage 无值则回退到 `'dark'`。admin.js 内嵌了一份简化版主题切换逻辑（单级点击，不做计数），和 index.js 的 API 语义保持一致（`applyTheme/setTheme/setupThemeToggle`）。
+- 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`，首页 / 搜索页 / 管理页默认 `<body class="dark-mode">` 防止刷新闪烁；JS 初始化若 localStorage 无值则回退到 `'dark'`。主题逻辑统一在 `res/js/theme.js`，`setupThemeToggle({ multiClick: true })` 仅在首页启用双击全屏，其余页面单击切换。
 - DOM 查询使用 `document.querySelector` 并保持空值判断；页面入口脚本只应操作本页存在的元素。
 - 缩进：CSS 4 空格；JS 2 空格。
 - 注释使用中文，不要为显而易见的代码新增注释。
@@ -193,35 +197,35 @@ npx --yes serve .
 ## 可选扩展
 
 - ~~**使用 GitHub OAuth 替代 PAT 粘贴**~~ ❌ 当前架构不可行：GitHub 已移除 Device Flow（2021）；PKCE / Authorization Code 流程的 client_secret 不能放纯静态前端；GitHub Pages 无后端做 token 交换。保留 PAT 方案。
-- ~~**增加 Service Worker 做离线缓存**~~ ✅ 已实现：根目录 `sw.js` + `res/js/sw-register.js` 三页共同注册。缓存策略——静态资源（HTML/CSS/JS/vendor/icon）cache-first；导航请求与 Gist API network-first（失败时回退缓存）。每次部署改 cache 名 `static-vN` 触发更新。
+- ~~**增加 Service Worker 做离线缓存**~~ ✅ 已实现：根目录 `sw.js` + `res/js/sw-register.js` 全站共同注册。缓存策略——静态资源（HTML/CSS/JS/vendor/icon）cache-first；导航请求与 Gist API network-first（失败时回退缓存）。每次部署改 cache 名 `static-vN` 触发更新。
 - **在 `index.json` 里保留关键词字段做更快的前端搜索** — 当前 `applyFilter` 已用 `${title} ${summary} ${tags}` 拼接 + `toLowerCase().includes()`，几十篇文章下 1ms 级完成，暂无瓶颈。文章超过 200 篇时再考虑。
 - ~~**将 `marked` / `DOMPurify` 下载到本地避免依赖 CDN**~~ ✅ 已完成：下载 UMD 构建到 `res/js/vendor/marked.min.js` + `purify.min.js`，`post.html` 改本地路径。暴露全局 `marked` / `DOMPurify`，`post.js` 检查 `typeof` 的守卫仍然生效。
 
 ## 已知陷阱
 
-- 三个页面入口已按页面拆分：`index.js`、`post.js`、`admin.js` 各自只加载一次。新增页面时不要把它们全部引入，否则会重复绑定事件。
-- `res/js/index.js` 是 ES Module，顶层函数不会挂到 `window`；不要在 HTML 里用 `onclick="searchWithEngine(...)"` 之类的内联写法，统一用 `addEventListener` 绑定。
+- 页面入口已按页面拆分：`index.js`、`search.js`、`post.js`、`admin.js` 各自只加载一次。新增页面时不要把它们全部引入，否则会重复绑定事件。
+- `res/js/index.js` 是 ES Module，顶层函数不会挂到 `window`；不要在 HTML 里用 `onclick="..."` 之类的内联写法，统一用 `addEventListener` 绑定。
 - `res/js/index.js` 顶部仍会调用列表 `main()`，但已用 `#post-list` 存在性做守卫；不要在无列表元素的页面加载它。
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
 - 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
-- 首页 `.search-container` 与 `#page-toggle` 默认隐藏；`#theme-toggle` 使用计数机制（250ms 内累计点击数）派发动作：单击=切换主题、双击=浏览器全屏、三击=切换显隐。键盘 `Shift+T` 是显隐控件的替代快捷键。不要改回即时 click 处理，否则多击时会多次触发主题切换。
-- admin 页的 `#theme-toggle` 简化为单击切换主题（不做计数），因为管理页没有搜索框，也不需要全屏入口。
-- `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
+- 首页 `#page-toggle`（文章列表）与搜索页入口常显；`#theme-toggle` 在首页使用计数机制（250ms 内累计点击数）：单击=切换主题、双击=浏览器全屏，不再有第三击动作。不要改回即时 click 处理，否则双击时会先触发一次主题切换。
+- 搜索页与管理页的 `#theme-toggle` 通过 `theme.js` 单击切换主题（不做计数），搜索页没有全屏入口。
+- `theme.js` 的 `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
 - 时钟跳动动画依赖 `void el.offsetWidth` 强制 reflow 来重触发同名 CSS animation；移除动画类后不加 reflow 直接 `classList.add` 不会产生动画。`.clock .char[class*="char-jump"] { transition: none }` 在动画期间禁用元素上的 `transition: all`，两者缺一不可。
-- 键盘快捷键与焦点样式是无障碍替代：`Shift+T` 切换控件显隐；不要删除全局 `:focus-visible` 规则。`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
+- 无障碍要求：不要删除全局 `:focus-visible` 规则；`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
 - 首页使用 `<main>` + `.sr-only` 的 `<h1>`，文章列表区域使用 `<section>`，避免同一文档出现多个 `<main>`。
 - 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
 - 文章卡片由 `res/js/index.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
-- 搜索框清空按钮 `#search-clear` 由 `updateSearchAffordances` 根据输入内容显隐；`Esc` 会清空并失焦。输入框必须保留 `min-width: 0`，否则移动端会被搜索引擎图标挤爆。
+- 搜索框清空按钮 `#search-clear` 由 `res/js/search.js` 的 `updateSearchAffordances` 根据输入内容显隐；`Esc` 会清空并失焦；空输入回车或点图标会提示而不会跳转。输入框必须保留 `min-width: 0`，否则移动端会被搜索引擎图标挤爆。
 - PAT 存在 `localStorage.gh_pat`，只用于 GitHub API 请求头，不得写入源码、示例、日志或提交记录。管理页初始化时若检测到已存 PAT，会自动把输入框 `disabled` + 灰化、隐藏眼睛按钮、提示 meta 改为「已在本地」；清除后恢复可编辑。
 - `sw.js` 在根目录以最大 scope 注册，首次安装时预缓存 `STATIC_ASSETS` 中的固定列表；新增静态文件（CSS/JS/icon）时记得把路径加进去。部署更新时改 cache 名 `static-vN` 触发旧缓存淘汰。不要把 POST/PATCH 请求（API 写操作）放进缓存。
 - `USE_MOCK_DATA = true` 时不会访问 GitHub，所有写操作只改内存，刷新后丢失；若线上"保存后刷新没了"或看到示例文章，先检查是不是被改成 `true`（当前默认 `false`）。
-- `admin.js` 内嵌了 `applyTheme/setTheme/setupThemeToggle` 三个函数（不从 index.js 导入，避免跨模块依赖），修改主题逻辑时 index.js 和 admin.js 要同步更新。
+- 主题逻辑统一在 `res/js/theme.js`；不要再把 `applyTheme/setTheme/setupThemeToggle` 复制回 `index.js` 或 `admin.js`。新增需要主题切换的页面时从该模块导入。
 - 不要提交任何 token、真实个人敏感信息；`.gitignore` 已忽略 `.vscode/`、`node_modules/`、`dist/`、`.vercel/`、`.old/`。
 
 ## 修改后的验证
@@ -229,16 +233,17 @@ npx --yes serve .
 无自动化测试，按以下清单人工验证：
 
 1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
-2. 主题按钮：单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；三击显示/隐藏搜索框与列表按钮（状态栏存 `indexControlsVisible`）；`Shift+T` 快捷键可切换显隐。
-3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页。
-4. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`，正文 Markdown 渲染正常、上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
-5. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
+2. 主题按钮：首页单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；不再有三击/`Shift+T` 显隐动作。
+3. 首页点击文章列表按钮，标签筛选、搜索、分页正常；「返回首页」可回到时钟页；右上角搜索图标可进入 `search.html`。
+4. `search.html`：输入关键词回车使用排序第一的引擎，点击图标使用对应引擎；空输入会提示且不跳转；清空按钮与 `Esc` 行为正常；拖拽图标可调整顺序，刷新后保持（`localStorage.searchEngineOrder`），输入框有内容时禁止拖拽；图标可用键盘 Tab 聚焦并回车触发。
+5. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`，正文 Markdown 渲染正常、上一篇/下一篇链接可用；`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
+6. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
    未设置 PAT 时：输入框可编辑、placeholder 为原始提示、meta 行显示「仅在本地使用」；保存后 → 输入框自动 disabled + 灰化、眼睛按钮隐藏、meta 行改为「已在本地」、placeholder 改为「已保存（点击清除后可修改）」；点击「清除」→ 恢复可编辑状态。
    标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
    点击某篇文章「编辑」→ 表单回填正确，slug 下方显示灰色 hint（含锁定的文件名），正文正确（YAML front matter 已剥离）；新建模式下 slug hint 隐藏。
    文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
    窄屏下表格出现横向滚动条（列不被挤压变形）；Toast 显示在顶部居中（软键盘弹出时不被遮挡）。
    新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
-6. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v1` 和 `dynamic-v1`；离线模式下刷新任意页面，静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
-7. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
-8. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
+7. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v2` 和 `dynamic-v2`；离线模式下刷新任意页面（含 `search.html`），静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
+8. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
+9. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
