@@ -7,6 +7,26 @@
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
 
+let homeDrag = null;
+document.addEventListener('pointerdown', event => {
+  if (event.button !== 0 || event.target.closest('a, button, input, select, textarea, [contenteditable="true"]')) return;
+  homeDrag = { x: event.clientX, y: event.clientY, id: event.pointerId };
+});
+window.addEventListener('pointercancel', () => { homeDrag = null; });
+window.addEventListener('pointerup', event => {
+  if (!homeDrag || event.pointerId !== homeDrag.id) return;
+  const dx = event.clientX - homeDrag.x;
+  const dy = event.clientY - homeDrag.y;
+  homeDrag = null;
+  if (dx > 80 && dx > Math.abs(dy)) window.location.href = 'index.html';
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'ArrowRight' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
+  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  event.preventDefault();
+  window.location.href = 'index.html';
+});
+
 function applyTheme(theme, persist) {
   const isDark = theme === 'dark';
   document.body.classList.toggle('dark-mode', isDark);

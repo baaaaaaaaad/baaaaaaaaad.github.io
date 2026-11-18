@@ -15,7 +15,7 @@ export const CONFIG = {
   /**
    * 站点标题与描述（会渲染到页面）
    */
-  SITE_TITLE: "My Gist Blog",
+  SITE_TITLE: "let's go",
   SITE_DESC: "博客由 Gist 驱动（GitHub Pages + Gist + GitHub API）",
 
   /**

@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const STATIC_CACHE = 'static-v3';
+const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
   './',
@@ -7,6 +7,8 @@ const STATIC_ASSETS = [
   'post.html',
   'admin.html',
   'res/css/index.css',
+  'res/css/bird.css',
+  'res/js/bird.js',
   'res/js/config.js',
   'res/js/gist.js',
   'res/js/index.js',

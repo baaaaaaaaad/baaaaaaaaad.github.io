@@ -499,82 +499,99 @@ function init() {
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', init);
 
-// 首页搜索框与文章列表按钮的显隐状态
-const CONTROLS_VISIBILITY_KEY = 'indexControlsVisible';
-
-function setControlsVisible(visible) {
-  document.body.classList.toggle('controls-visible', visible);
-  localStorage.setItem(CONTROLS_VISIBILITY_KEY, visible ? '1' : '0');
-}
-
-function setupControlsVisibility() {
-  const visible = localStorage.getItem(CONTROLS_VISIBILITY_KEY) === '1';
-  document.body.classList.toggle('controls-visible', visible);
-}
-
-// 尽早应用显隐状态，避免刷新时先显示再隐藏
-setupControlsVisibility();
-
-/** 键盘快捷键：Shift+T 切换搜索框与文章列表按钮的显隐 */
-function setupKeyboardToggles() {
-  document.addEventListener('keydown', (event) => {
-    if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.key.toLowerCase() !== 't') return;
-
-    const target = event.target;
-    if (target instanceof HTMLElement) {
-      if (target.isContentEditable) return;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
-    }
-
-    event.preventDefault();
-    setControlsVisible(!document.body.classList.contains('controls-visible'));
-  });
-}
 
 // 页面切换功能
-function togglePage(pageName) {
-  // 隐藏所有页面
-  const pages = document.querySelectorAll('.page');
-  pages.forEach(page => {
-    page.style.display = 'none';
+function togglePage(pageName, focus = true) {
+  const views = { 'main-page': 'home', 'search-page': 'search', 'article-page': 'article' };
+  const view = views[pageName];
+  if (!view) return;
+  const stage = document.getElementById('slide-stage');
+  stage.dataset.view = view;
+  Object.keys(views).forEach(id => {
+    const page = document.getElementById(id);
+    const active = id === pageName;
+    page.inert = !active;
+    page.setAttribute('aria-hidden', String(!active));
   });
+  document.querySelector('.slide-navigation').inert = view !== 'home';
+  if (focus) document.getElementById(pageName).focus({ preventScroll: true });
+}
 
-  // 显示目标页面
-  const targetPage = document.getElementById(pageName);
-  if (targetPage) {
-    targetPage.style.display = 'block';
-  }
-
-  // 更新按钮状态
-  const buttons = document.querySelectorAll('.nav-button');
-  buttons.forEach(button => {
-    button.classList.remove('active');
-    if (button.getAttribute('data-page') === pageName) {
-      button.classList.add('active');
+function setupSlides() {
+  const stage = document.getElementById('slide-stage');
+  const fullscreenButton = document.getElementById('fullscreen-toggle');
+  const updateFullscreenButton = () => {
+    const active = Boolean(document.fullscreenElement);
+    fullscreenButton.setAttribute('aria-pressed', String(active));
+    fullscreenButton.setAttribute('aria-label', active ? '退出全屏' : '进入全屏');
+  };
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.warn('无法切换全屏模式', error);
     }
+  };
+  fullscreenButton.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', updateFullscreenButton);
+  updateFullscreenButton();
+  const pages = { home: 'main-page', search: 'search-page', article: 'article-page' };
+  document.querySelectorAll('[data-slide]').forEach(button => {
+    button.addEventListener('click', () => togglePage(pages[button.dataset.slide]));
   });
-
-  // 更新 page-toggle 按钮的 aria-expanded
-  const pageToggle = document.getElementById('page-toggle');
-  if (pageToggle) {
-    const expanded = pageName === 'article-page';
-    pageToggle.setAttribute('aria-expanded', String(expanded));
-    pageToggle.setAttribute('aria-label', expanded ? '返回首页' : '查看文章列表');
-  }
-
-  // 如果是从文章详情页切换回主页，清空URL参数
-  if (pageName === 'main-page') {
-    const url = new URL(window.location);
-    url.search = '';
-    window.history.pushState({}, document.title, url);
-  }
+  document.addEventListener('keydown', event => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
+    if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    const view = stage.dataset.view;
+    if (view === 'home' && event.key === 'ArrowUp') {
+      event.preventDefault();
+      toggleFullscreen();
+      return;
+    }
+    let target;
+    if (view === 'home' && event.key === 'ArrowRight') target = 'search';
+    if (view === 'home' && event.key === 'ArrowDown') target = 'article';
+    if (view === 'home' && event.key === 'ArrowLeft') target = 'admin';
+    if ((view === 'search' && event.key === 'ArrowLeft') || (view === 'article' && event.key === 'ArrowUp') || (view !== 'home' && event.key === 'Escape')) target = 'home';
+    if (!target) return;
+    event.preventDefault();
+    if (target === 'admin') window.location.href = 'admin.html';
+    else togglePage(pages[target]);
+  });
+  let start = null;
+  stage.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || event.target.closest('a, button, input, select, textarea, [draggable="true"]')) return;
+    start = { x: event.clientX, y: event.clientY, id: event.pointerId };
+  });
+  window.addEventListener('pointercancel', () => { start = null; });
+  window.addEventListener('pointerup', event => {
+    if (!start || start.id !== event.pointerId) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    start = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 80) return;
+    const view = stage.dataset.view;
+    let target;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (view === 'home') target = dx > 0 ? 'search' : 'admin';
+      else if (view === 'search' && dx < 0) target = 'home';
+    } else {
+      if (view === 'home' && dy < 0) {
+        toggleFullscreen();
+        return;
+      }
+      if (view === 'home' && dy > 0) target = 'article';
+      else if (view === 'article' && dy < 0 && document.getElementById('article-page').scrollTop === 0) target = 'home';
+    }
+    if (target === 'admin') window.location.href = 'admin.html';
+    else if (target) togglePage(pages[target]);
+  });
 }
 
 // 初始页面加载处理
 document.addEventListener('DOMContentLoaded', () => {
-  // 设置键盘快捷键
-  setupKeyboardToggles();
+  setupSlides();
 
   // 检查URL参数是否包含slug
   const urlParams = new URLSearchParams(window.location.search);
@@ -592,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   } else {
     // 否则默认显示主页
-    togglePage('main-page');
+    togglePage('main-page', false);
   }
 
   // 导航按钮事件监听
@@ -609,9 +626,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (searchIcons.length) {
     searchIcons.forEach(icon => {
       icon.addEventListener('click', function() {
-        // 获取搜索引擎名称
         const engineName = this.id.split('-')[0];
         searchWithEngine(engineName);
+      });
+      icon.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          icon.click();
+        }
       });
     });
   }
@@ -632,15 +654,6 @@ document.addEventListener('DOMContentLoaded', () => {
           this.removeEventListener('animationend', handler);
         });
       });
-    });
-  }
-
-  // 添加页面切换按钮事件监听
-  const pageToggle = document.getElementById('page-toggle');
-  if (pageToggle) {
-    pageToggle.addEventListener('click', function() {
-      // 切换到文章列表页面
-      togglePage('article-page');
     });
   }
 

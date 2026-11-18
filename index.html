@@ -17,8 +17,8 @@
     <!-- 椋鸟群飞背景画布 -->
     <canvas id="bird-canvas" aria-hidden="true"></canvas>
 
-    <!-- 主页内容容器 -->
-    <main class="content-container page" id="main-page">
+    <div class="slide-stage" id="slide-stage" data-view="home">
+    <main class="content-container page" id="main-page" tabindex="-1">
         <h1 class="sr-only">baaaaaaaaad(9A认证)</h1>
         <!-- 时钟 -->
         <div class="clock" id="clock"></div>
@@ -32,30 +32,29 @@
                 <span class="day-progress-text" id="day-progress-text">今日 0%</span>
             </div>
         </div>
-        <!-- 搜索框 -->
+    </main>
+    <section class="page search-page" id="search-page" aria-label="搜索" tabindex="-1" inert aria-hidden="true">
+        <button class="back-home-button" data-slide="home">← 首页</button>
         <div class="search-container" id="search-container">
             <div class="search-bar">
                 <input type="text" id="search-input" placeholder="搜索..." class="search-input">
                 <div class="search-engines" id="searchEnginesContainer" role="group" aria-label="搜索引擎选择">
-                    <a id="bing-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Bing搜索"><img src="res/icon/bing-color.svg" alt="Bing" class="search-engine-img"></a>
-                    <a id="baidu-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用百度搜索"><img src="res/icon/baidu-color.svg" alt="Baidu" class="search-engine-img"></a>
-                    <a id="google-search" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Google搜索"><img src="res/icon/google-color.svg" alt="Google" class="search-engine-img"></a>
+                    <a id="bing-search" role="button" tabindex="0" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Bing搜索"><img src="res/icon/bing-color.svg" alt="Bing" class="search-engine-img"></a>
+                    <a id="baidu-search" role="button" tabindex="0" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用百度搜索"><img src="res/icon/baidu-color.svg" alt="Baidu" class="search-engine-img"></a>
+                    <a id="google-search" role="button" tabindex="0" draggable="true" target="_blank" class="search-engine-icon" aria-label="使用Google搜索"><img src="res/icon/google-color.svg" alt="Google" class="search-engine-img"></a>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
 
-    <!-- 导航容器 -->
-    <div class="navigation-container">
-        <button id="page-toggle" class="navigation-icon" title="文章列表" data-page="home" aria-label="查看文章列表" aria-controls="article-page" aria-expanded="false" aria-keyshortcuts="Shift+T">
-            <svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-                <path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v10h14V7H5Zm2 2h4v2H7V9Zm0 4h6v2H7v-2Zm8-4h2v2h-2V9Zm0 4h2v2h-2v-2Z"/>
-            </svg>
-        </button>
-    </div>
+    <nav class="slide-navigation" aria-label="页面导航">
+        <button type="button" id="fullscreen-toggle" aria-label="进入全屏" aria-pressed="false">↑</button>
+        <a href="admin.html" aria-label="向左进入管理页">←</a>
+        <button type="button" data-slide="article" aria-controls="article-page">↓</button>
+        <button type="button" data-slide="search" aria-controls="search-page">→</button>
+    </nav>
 
-    <!-- 文章列表页面 -->
-    <div class="page" id="article-page" aria-live="polite">
+    <div class="page" id="article-page" tabindex="-1" inert aria-hidden="true">
         <div id="nav-container">
             <nav class="nav-bar" aria-label="文章列表导航">
                 <button id="back-home" class="back-home-button" aria-label="返回首页">← 首页</button>
@@ -78,6 +77,7 @@
                 <button id="next" aria-label="下一页">下一页</button>
             </div>
         </section>
+    </div>
     </div>
     <script type="module" src="res/js/index.js"></script>
     <script src="res/js/bird.js" defer></script>
