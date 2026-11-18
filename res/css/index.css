@@ -585,6 +585,11 @@ html.theme-transitioning body * {
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.slide-stage > #main-page,
+.slide-stage > #article-page {
+    animation: none;
+}
+
 .slide-stage > #main-page { transform: translate(0, 0); }
 .slide-stage > #search-page { transform: translateX(-100%); }
 .slide-stage > #article-page { transform: translateY(-100%); }
