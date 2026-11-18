@@ -315,15 +315,67 @@ body.dark-mode .day-progress-fill {
     border-color: var(--accent-color);
 }
 
+.search-bar:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--shadow-light), 0 10px 30px var(--shadow-medium);
+    transform: translateY(-1px);
+}
+
+/* 搜索框左侧图标 */
+.search-leading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--secondary-text);
+    transition: color 0.3s ease;
+}
+
+.search-bar:focus-within .search-leading {
+    color: var(--accent-color);
+}
+
 .search-input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     background: transparent;
-    padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 20px);
+    padding: clamp(8px, 2vw, 12px) 0;
     font-size: clamp(14px, 3vw, 18px);
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 搜索框整体已有 focus-within 样式，输入框不再重复描边 */
+#search-input:focus-visible {
+    outline: none;
+}
+
+/* 清空按钮 */
+.search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--secondary-text);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.search-clear[hidden] {
+    display: none;
+}
+
+.search-clear:hover {
+    background: var(--shadow-light);
+    color: var(--text-color);
 }
 
 .search-engines {
@@ -341,6 +393,7 @@ body.dark-mode .day-progress-fill {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
     text-decoration: none;
     margin-left: 5px;
     cursor: move;
@@ -351,9 +404,9 @@ body.dark-mode .day-progress-fill {
 }
 
 .search-engine-icon:hover {
-    transform: scale(1.15) rotate(5deg);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 6px 15px var(--shadow-medium);
+    transform: scale(1.06);
+    background: var(--shadow-light);
+    box-shadow: none;
 }
 
 .search-engine-icon img,
@@ -362,7 +415,6 @@ body.dark-mode .day-progress-fill {
     height: 36px;
     object-fit: contain;
 }
-
 
 
 /* 导航容器 */
@@ -384,9 +436,11 @@ body.dark-mode .day-progress-fill {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     background: transparent;
     border: none;
     color: var(--text-color);
+    text-decoration: none;
     cursor: pointer;
     font-size: 22px;
     transition: all 0.3s ease;
@@ -411,9 +465,9 @@ body.dark-mode .day-progress-fill {
     height: 20px;
 }
 
-/* 页面切换样式 */
+/* 文章列表页面样式 */
 #article-page {
-    display: none;
+    display: block;
     width: 100%;
     min-height: 100vh;
     padding: 60px 20px 20px;
@@ -468,16 +522,6 @@ body.dark-mode .day-progress-fill {
         transform: scale(1);
     }
 }
-
-.nav-links {
-    display: flex;
-    gap: 15px;
-}
-
-.admin-link {
-    display: none;
-}
-
 
 /* 暗色主题 */
 body.dark-mode {
@@ -607,38 +651,6 @@ html.theme-transitioning body * {
 .pagination-controls {
     justify-content: center;
     margin-top: 30px;
-}
-
-#nav-container {
-    margin-bottom: 30px;
-}
-
-.nav-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-#back-home,
-.back-home-button {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    border: none;
-    background: none;
-    color: var(--accent-color);
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-#back-home:hover {
-    background: var(--search-bg);
 }
 
 .controls {
@@ -866,16 +878,38 @@ html.theme-transitioning body * {
     }
 
     .search-bar {
-        padding: 8px 15px;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .search-leading svg {
+        width: 16px;
+        height: 16px;
     }
 
     .search-input {
         font-size: 14px;
     }
 
+    .search-clear {
+        width: 24px;
+        height: 24px;
+    }
+
+    .search-engines {
+        gap: 6px;
+        min-height: 30px;
+    }
+
     .search-engine-icon {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
+        margin-left: 0;
+    }
+
+    .search-engine-icon img {
+        width: 28px;
+        height: 28px;
     }
 
     .navigation-container {
@@ -952,6 +986,10 @@ html.theme-transitioning body * {
     ::view-transition-new(root) {
         animation: none;
     }
+
+    .search-bar:focus-within {
+        transform: none;
+    }
 }
 
 /* 错误提示样式 */
@@ -969,13 +1007,6 @@ body.admin-page {
     display: block;
 }
 
-body.post-page #nav-container,
-body.admin-page #nav-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px 20px 0;
-}
-
 body.post-page header,
 body.post-page main,
 body.admin-page header,
@@ -987,7 +1018,11 @@ body.admin-page main {
 }
 
 body.post-page header {
-    padding-top: 30px;
+    padding-top: 90px;
+}
+
+body.admin-page header {
+    padding-top: 90px;
 }
 
 body.post-page #meta,
@@ -1295,4 +1330,37 @@ body.admin-page #toast {
     pointer-events: none;
     z-index: 100;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 文章列表页导航横向排列，避免遮挡筛选区 */
+.navigation-container.nav--horizontal {
+    flex-direction: row;
+}
+
+body.posts-page #article-page {
+    padding-top: 90px;
+}
+
+@media (max-width: 768px) {
+    body.post-page header,
+    body.admin-page header {
+        padding-top: 70px;
+    }
+
+    body.posts-page #article-page {
+        padding-top: 70px;
+    }
+}
+
+/* 内容页在窄屏回退为横排，避免固定纵排遮挡正文/表单 */
+@media (max-width: 920px) {
+    body.post-page .navigation-container {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 1100px) {
+    body.admin-page .navigation-container {
+        flex-direction: row;
+    }
 }
