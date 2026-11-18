@@ -7,70 +7,6 @@
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
 
-let homeDrag = null;
-document.addEventListener('pointerdown', event => {
-  if (event.button !== 0 || event.target.closest('a, button, input, select, textarea, [contenteditable="true"]')) return;
-  homeDrag = { x: event.clientX, y: event.clientY, id: event.pointerId };
-});
-window.addEventListener('pointercancel', () => { homeDrag = null; });
-window.addEventListener('pointerup', event => {
-  if (!homeDrag || event.pointerId !== homeDrag.id) return;
-  const dx = event.clientX - homeDrag.x;
-  const dy = event.clientY - homeDrag.y;
-  homeDrag = null;
-  if (dx > 80 && dx > Math.abs(dy)) window.location.href = 'index.html';
-});
-document.addEventListener('keydown', event => {
-  if (event.key !== 'ArrowRight' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
-  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-  event.preventDefault();
-  window.location.href = 'index.html';
-});
-
-function applyTheme(theme, persist) {
-  const isDark = theme === 'dark';
-  document.body.classList.toggle('dark-mode', isDark);
-  if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  const btn = document.getElementById('theme-toggle');
-  if (btn) btn.setAttribute('aria-pressed', String(isDark));
-}
-
-function setTheme(theme, persist = true, origin = null) {
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
-    applyTheme(theme, persist);
-    return;
-  }
-  document.documentElement.style.setProperty('--theme-x', `${origin.x}px`);
-  document.documentElement.style.setProperty('--theme-y', `${origin.y}px`);
-  document.documentElement.classList.add('theme-transitioning');
-  try {
-    const transition = document.startViewTransition(() => applyTheme(theme, persist));
-    const cleanup = () => document.documentElement.classList.remove('theme-transitioning');
-    transition.finished.then(cleanup, cleanup);
-  } catch {
-    document.documentElement.classList.remove('theme-transitioning');
-    applyTheme(theme, persist);
-  }
-}
-
-function setupThemeToggle() {
-  applyTheme(localStorage.getItem('theme') || 'dark', false);
-  const btn = document.getElementById('theme-toggle');
-  if (!btn) return;
-  btn.addEventListener('click', (event) => {
-    const rect = btn.getBoundingClientRect();
-    const origin = {
-      x: event.clientX || rect.left + rect.width / 2,
-      y: event.clientY || rect.top + rect.height / 2
-    };
-    const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-    setTheme(nextTheme, true, origin);
-  });
-}
-
-setupThemeToggle();
-
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
 
@@ -95,7 +31,7 @@ function toast(msg) {
 /** 保证已配置 PAT，否则抛错提醒用户先配置 */
 function requirePAT() {
   const pat = localStorage.getItem('gh_pat');
-  if (!pat) throw new Error('未设置 PAT。请先在右上角输入（仅勾选 gist 权限）。');
+  if (!pat) throw new Error('未设置 PAT。请先在凭据设置中输入（仅勾选 gist 权限）。');
 }
 
 /** 拉取 index.json 并渲染到列表表格 */
@@ -122,7 +58,7 @@ function renderTable(posts) {
 
   tbody.innerHTML = '';
   if (!posts.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">还没有文章，填写左侧表单后点击「保存」即可发布第一篇 🎉</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">还没有文章，在下方编辑区填写内容后点击「保存」即可发布第一篇。</td></tr>`;
     return;
   }
   for (const p of [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
@@ -270,7 +206,7 @@ function bindToolbar() {
     const hasPat = !!localStorage.getItem('gh_pat');
     if (patInput) {
       patInput.disabled = hasPat;
-      patInput.value = '';
+      if (hasPat) patInput.value = '';
       patInput.placeholder = hasPat ? '已保存（点击清除后可修改）' : '输入 PAT（仅 gist 权限）';
     }
     if (patToggle) {

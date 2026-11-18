@@ -9,28 +9,48 @@
   <link rel="stylesheet" href="res/css/index.css">
 </head>
 <body class="admin-page dark-mode">
-
-<div class="navigation-container">
-  <button id="theme-toggle" class="navigation-icon" aria-label="切换主题" aria-pressed="false" title="单击切换主题"><span class="light-icon">🌞</span><span class="dark-icon">🌙</span></button>
-</div>
-
-<header>
-  <a class="back-home-button" href="index.html">→ 首页</a>
-  <div>
-    <div class="meta">仅在本地使用 PAT 写入 Gist</div>
-  </div>
-  <div class="controls pat-controls">
-    <div class="pat-input-wrapper">
-      <input id="pat" type="password" placeholder="输入 PAT（仅 gist 权限）" autocomplete="off" spellcheck="false">
-      <button id="pat-toggle" class="pat-toggle" type="button" aria-label="显示 PAT" title="显示/隐藏">👁</button>
+<header class="admin-header">
+  <h1>文章管理</h1>
+  <p>管理 Gist 中的文章与发布状态</p>
+  <section class="admin-panel" aria-labelledby="pat-heading">
+    <div class="admin-panel-heading">
+      <div>
+        <h2 id="pat-heading">凭据设置</h2>
+        <p class="meta">仅在本地使用 PAT 写入 Gist</p>
+      </div>
     </div>
-    <button id="pat-save">保存到本地</button>
-    <button id="pat-clear">清除</button>
-  </div>
+    <div class="controls pat-controls">
+      <div class="pat-input-wrapper">
+        <input id="pat" type="password" aria-label="Personal Access Token" placeholder="输入 PAT（仅 gist 权限）" autocomplete="off" spellcheck="false">
+        <button id="pat-toggle" class="pat-toggle" type="button" aria-label="显示 PAT" title="显示/隐藏">👁</button>
+      </div>
+      <button id="pat-save" type="button">保存到本地</button>
+      <button id="pat-clear" type="button">清除</button>
+    </div>
+    <p class="admin-note">PAT 仅保存在当前浏览器，请仅授予 gist 权限。</p>
+  </section>
 </header>
 <main>
-  <section>
-    <h2>新建/编辑文章</h2>
+  <section class="admin-panel" aria-labelledby="posts-heading">
+    <div class="admin-panel-heading">
+      <h2 id="posts-heading">文章列表</h2>
+      <button id="new" type="button">新建</button>
+    </div>
+    <div class="table-wrapper">
+      <table id="posts" class="table">
+        <thead>
+          <tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr>
+        </thead>
+        <tbody id="posts-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-panel" aria-labelledby="editor-heading">
+    <div class="admin-panel-heading">
+      <h2 id="editor-heading">新建/编辑文章</h2>
+      <button id="save" class="admin-primary" type="button">保存</button>
+    </div>
     <div class="admin-form-grid">
       <label>标题<input id="title" type="text"></label>
       <label class="admin-slug">Slug<input id="slug" type="text" placeholder="留空自动生成">
@@ -41,26 +61,9 @@
       <label class="admin-col-span">摘要<input id="summary" type="text"></label>
       <label class="admin-col-span">正文（Markdown）<textarea id="body" rows="16"></textarea></label>
     </div>
-    <div class="controls" style="margin-top:8px;">
-      <button id="new">新建</button>
-      <button id="save">保存</button>
-    </div>
-  </section>
-
-  <section>
-    <h2>文章列表</h2>
-    <div class="table-wrapper">
-      <table id="posts" class="table">
-        <thead>
-          <tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr>
-        </thead>
-        <tbody id="posts-body"></tbody>
-      </table>
-    </div>
   </section>
 </main>
-<div id="toast"></div>
-<script src="res/js/nav.js" defer></script>
+<div id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="res/js/admin.js"></script>
 <script src="res/js/sw-register.js" defer></script>
 </body>
