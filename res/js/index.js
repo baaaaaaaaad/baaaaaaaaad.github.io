@@ -1,4 +1,4 @@
-// 首页逻辑：文章列表、时钟、主题切换、搜索与页面切换。
+// 首页逻辑：文章列表、时钟、搜索与页面切换。
 // 详情页与管理页分别由 post.js、admin.js 加载，三者共享 config.js 与 gist.js。
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
@@ -204,7 +204,6 @@ main().catch(err => {
 // 存储上一次的时间字符串，用于比较时间是否变化
 let prevTimeStr = '';
 let prevDateStr = '';
-let prevTimeOfDay = '';
 
 /**
  * 实时更新时间并拆分字符进行动画处理
@@ -212,7 +211,6 @@ let prevTimeOfDay = '';
  */
 function updateClock() {
   const now = new Date();
-  applyTimeOfDay(now);
   updateDayProgress(now);
 
   // 格式化时间为 HH:MM:SS 格式
@@ -307,22 +305,6 @@ function updateDate(date) {
     }
     prevDateStr = dateStr;
   }
-}
-
-/** 根据小时返回时间段 */
-function getTimeOfDay(hour) {
-  if (hour >= 5 && hour < 8) return 'dawn';
-  if (hour >= 8 && hour < 17) return 'day';
-  if (hour >= 17 && hour < 20) return 'dusk';
-  return 'night';
-}
-
-/** 将时间段写到 body，用于切换氛围背景 */
-function applyTimeOfDay(date) {
-  const period = getTimeOfDay(date.getHours());
-  if (period === prevTimeOfDay) return;
-  prevTimeOfDay = period;
-  document.body.dataset.time = period;
 }
 
 /** 更新「今日进度」文案与进度条 */
@@ -519,59 +501,21 @@ document.addEventListener('DOMContentLoaded', init);
 
 // 首页搜索框与文章列表按钮的显隐状态
 const CONTROLS_VISIBILITY_KEY = 'indexControlsVisible';
-const THEME_CLICK_DELAY = 250;
 
 function setControlsVisible(visible) {
   document.body.classList.toggle('controls-visible', visible);
   localStorage.setItem(CONTROLS_VISIBILITY_KEY, visible ? '1' : '0');
-
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) themeToggle.setAttribute('aria-expanded', String(visible));
 }
 
 function setupControlsVisibility() {
   const visible = localStorage.getItem(CONTROLS_VISIBILITY_KEY) === '1';
   document.body.classList.toggle('controls-visible', visible);
-
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) themeToggle.setAttribute('aria-expanded', String(visible));
 }
 
 // 尽早应用显隐状态，避免刷新时先显示再隐藏
 setupControlsVisibility();
 
-// 主题切换功能
-function applyTheme(theme, persist) {
-  const isDark = theme === 'dark';
-  document.body.classList.toggle('dark-mode', isDark);
-  if (persist) localStorage.setItem('theme', isDark ? 'dark' : 'light');
-
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) themeToggle.setAttribute('aria-pressed', String(isDark));
-}
-
-function setTheme(theme, persist = true, origin = null) {
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
-    applyTheme(theme, persist);
-    return;
-  }
-
-  document.documentElement.style.setProperty('--theme-x', `${origin.x}px`);
-  document.documentElement.style.setProperty('--theme-y', `${origin.y}px`);
-  document.documentElement.classList.add('theme-transitioning');
-
-  try {
-    const transition = document.startViewTransition(() => applyTheme(theme, persist));
-    const cleanup = () => document.documentElement.classList.remove('theme-transitioning');
-    transition.finished.then(cleanup, cleanup);
-  } catch {
-    document.documentElement.classList.remove('theme-transitioning');
-    applyTheme(theme, persist);
-  }
-}
-
-/** 键盘替代双击：Shift+T 切换搜索框与文章列表按钮的显隐 */
+/** 键盘快捷键：Shift+T 切换搜索框与文章列表按钮的显隐 */
 function setupKeyboardToggles() {
   document.addEventListener('keydown', (event) => {
     if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -585,56 +529,6 @@ function setupKeyboardToggles() {
 
     event.preventDefault();
     setControlsVisible(!document.body.classList.contains('controls-visible'));
-  });
-}
-
-function toggleFullscreen() {
-  const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-  if (fsEl) {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-    if (exit) exit.call(document);
-  } else {
-    const root = document.documentElement;
-    const enter = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
-    if (enter) enter.call(root);
-  }
-}
-
-function setupThemeToggle() {
-  const themeToggle = document.getElementById('theme-toggle');
-  if (!themeToggle) return;
-
-  setTheme(localStorage.getItem('theme') || 'dark', false);
-
-  let clickTimer = null;
-  let clickOrigin = null;
-  let clickCount = 0;
-
-  themeToggle.addEventListener('click', (event) => {
-    const rect = themeToggle.getBoundingClientRect();
-    clickOrigin = {
-      x: event.clientX || rect.left + rect.width / 2,
-      y: event.clientY || rect.top + rect.height / 2
-    };
-    clickCount++;
-
-    if (clickTimer) clearTimeout(clickTimer);
-
-    clickTimer = setTimeout(() => {
-      clickTimer = null;
-      const count = clickCount;
-      clickCount = 0;
-
-      if (count === 1) {
-        const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-        setTheme(nextTheme, true, clickOrigin);
-      } else if (count === 2) {
-        toggleFullscreen();
-      } else {
-        setControlsVisible(!document.body.classList.contains('controls-visible'));
-      }
-      clickOrigin = null;
-    }, THEME_CLICK_DELAY);
   });
 }
 
@@ -661,6 +555,14 @@ function togglePage(pageName) {
     }
   });
 
+  // 更新 page-toggle 按钮的 aria-expanded
+  const pageToggle = document.getElementById('page-toggle');
+  if (pageToggle) {
+    const expanded = pageName === 'article-page';
+    pageToggle.setAttribute('aria-expanded', String(expanded));
+    pageToggle.setAttribute('aria-label', expanded ? '返回首页' : '查看文章列表');
+  }
+
   // 如果是从文章详情页切换回主页，清空URL参数
   if (pageName === 'main-page') {
     const url = new URL(window.location);
@@ -671,8 +573,7 @@ function togglePage(pageName) {
 
 // 初始页面加载处理
 document.addEventListener('DOMContentLoaded', () => {
-  // 设置主题切换
-  setupThemeToggle();
+  // 设置键盘快捷键
   setupKeyboardToggles();
 
   // 检查URL参数是否包含slug
