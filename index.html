@@ -10,12 +10,10 @@
     <title>baaaaaaaaad(9A认证)</title>
     <link rel="icon" href="res/icon/rainbow.png" type="image/png">
     <link rel="stylesheet" href="res/css/index.css">
-    <link rel="stylesheet" href="res/css/bird.css">
 </head>
 
 <body class="dark-mode">
-    <!-- 椋鸟群飞背景画布 -->
-    <canvas id="bird-canvas" aria-hidden="true"></canvas>
+    <iframe id="bird-background" src="bird-background.html" title="椋鸟群飞背景" aria-hidden="true" tabindex="-1" sandbox="allow-scripts"></iframe>
 
     <div class="slide-stage" id="slide-stage" data-view="home">
     <main class="content-container page" id="main-page" tabindex="-1">
@@ -80,7 +78,6 @@
     </div>
     </div>
     <script type="module" src="res/js/index.js"></script>
-    <script src="res/js/bird.js" defer></script>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="res/icon/bing-color.svg" as="image" type="image/svg+xml">
     <link rel="preload" href="res/icon/baidu-color.svg" as="image" type="image/svg+xml">

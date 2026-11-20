@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v9';
+const STATIC_CACHE = 'static-v10';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
@@ -9,8 +9,7 @@ const STATIC_ASSETS = [
   'post.html',
   'admin.html',
   'res/css/index.css',
-  'res/css/bird.css',
-  'res/js/bird.js',
+  'bird-background.html',
   'res/js/config.js',
   'res/js/gist.js',
   'res/js/index.js',
