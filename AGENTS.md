@@ -223,7 +223,7 @@ npx --yes serve .
 - 首页 `#page-toggle`（文章列表）与搜索页入口常显；`#theme-toggle` 在首页使用计数机制（250ms 内累计点击数）：单击=切换主题、双击=浏览器全屏，不再有第三击动作。不要改回即时 click 处理，否则双击时会先触发一次主题切换。
 - 文章列表页 / 搜索页 / 详情页 / 管理页的 `#theme-toggle` 通过 `theme.js` 单击切换主题（不做计数），搜索页与详情页没有全屏入口。
 - `theme.js` 的 `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
-- 时钟跳动动画依赖 `void el.offsetWidth` 强制 reflow 来重触发同名 CSS animation；移除动画类后不加 reflow 直接 `classList.add` 不会产生动画。`.clock .char[class*="char-jump"] { transition: none }` 在动画期间禁用元素上的 `transition: all`，两者缺一不可。
+- 首页时钟使用淡入位移：变化时旧数字淡出、新数字淡入；动画结束或取消时恢复为新数字。减少动态效果时直接更新数字、停止冒号呼吸。
 - 无障碍要求：不要删除全局 `:focus-visible` 规则；`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
 - 首页使用 `<main>` + `.sr-only` 的 `<h1>`；文章列表页同样使用 `<main>` + `.sr-only` 的 `<h1>`，列表区域使用 `<section>`；避免同一文档出现多个 `<main>`。
 - 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
