@@ -249,11 +249,11 @@ function updateClock() {
       digit.append(next);
       const animation = previous.animate(
         [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
-        { duration: 990, easing: 'linear', fill: 'forwards' }
+        { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
       );
       const nextAnimation = next.animate(
         [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
-        { duration: 990, easing: 'linear', fill: 'forwards' }
+        { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
       );
       animation.onfinish = () => {
         nextAnimation.cancel();
