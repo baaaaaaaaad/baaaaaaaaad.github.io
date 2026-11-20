@@ -3,6 +3,18 @@
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 
+const birdBackground = document.querySelector('#bird-background');
+function forwardBirdPointer(type, event) {
+  if (!birdBackground?.contentWindow) return;
+  const interactive = event?.target instanceof Element && event.target.closest('a, button, input, textarea, select, .navigation-container, .search-container, header, #article-page, .post-card, .pagination-controls');
+  const rect = birdBackground.getBoundingClientRect();
+  birdBackground.contentWindow.postMessage({ channel: 'bird-pointer', type: interactive ? 'leave' : type, x: event ? event.clientX - rect.left : 0, y: event ? event.clientY - rect.top : 0, pointerType: event?.pointerType }, '*');
+}
+for (const type of ['pointermove', 'pointerdown', 'pointerup']) {
+  window.addEventListener(type, event => forwardBirdPointer(type.slice(7), event));
+}
+document.addEventListener('pointerleave', () => forwardBirdPointer('leave'));
+
 // 页面状态（内存中即可）
 const state = {
   all: [],        // 所有文章（来自 index.json）
