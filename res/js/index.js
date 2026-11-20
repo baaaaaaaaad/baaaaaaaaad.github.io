@@ -225,57 +225,41 @@ function updateClock() {
   // 检查时钟元素是否存在
   if (!clockEl) return;
 
-  // 如果是首次加载（prevTimeStr为空），初始渲染所有字符
-  if (prevTimeStr === '') {
-    // 将时间字符串拆分为单个字符并渲染为带span标签的HTML
-    clockEl.innerHTML = timeStr.split('').map(char =>
-      `<span class="char ${char === ':' ? 'char-colon' : 'char-static'}">${char}</span>`
+  clockEl.setAttribute('aria-label', `当前时间 ${hours}时${minutes}分${seconds}秒`);
+
+  if (prevTimeStr === '' || clockEl.children.length !== timeStr.length) {
+    clockEl.innerHTML = timeStr.split('').map(char => char === ':'
+      ? '<span class="clock-separator">:</span>'
+      : `<span class="clock-digit"><span class="clock-number">${char}</span></span>`
     ).join('');
-  }
-  // 如果时间发生变化，只更新变化的字符
-  else if (timeStr !== prevTimeStr) {
-    // 分割上一次和当前的时间字符串为字符数组
-    const prevChars = prevTimeStr.split('');
-    const currentChars = timeStr.split('');
-    // 获取所有时钟字符元素
-    const clockChars = clockEl.querySelectorAll('.char');
-
-    // 确保时钟字符元素存在且数量正确
-    if (clockChars.length >= timeStr.length) {
-      // 遍历当前时间的每个字符
-      currentChars.forEach((char, index) => {
-        // 如果字符变化且不是冒号位置（2和5是冒号位置）
-        if (char !== prevChars[index] && index !== 2 && index !== 5) {
-          // 移除之前可能存在的动画类
-          clockChars[index].classList.remove('char-jump-small', 'char-jump-medium', 'char-jump-large', 'char-jump-tiny', 'char-jump-extralarge', 'char-jump-xlarge');
-          // 为不同位置的字符应用不同高度的弹跳动画，从左到右高度依次增加
-          let animationType;
-          if (index < 2) {
-            // 小时部分（位置0-1）
-            animationType = index === 0 ? 'char-jump-tiny' : 'char-jump-small';
-          } else if (index < 5) {
-            // 分钟部分（位置3-4）
-            animationType = index === 3 ? 'char-jump-medium' : 'char-jump-large';
-          } else {
-            // 秒部分（位置6-7）
-            animationType = index === 6 ? 'char-jump-extralarge' : 'char-jump-xlarge';
-          }
-          clockChars[index].classList.add(animationType);
-          // 更新字符内容
-          clockChars[index].textContent = char;
-
-          // 动画结束后移除动画类，防止重复触发
-          clockChars[index].addEventListener('animationend', function handler() {
-            this.classList.remove(animationType);
-            this.removeEventListener('animationend', handler);
-          });
-        }
-        // 冒号位置的处理（不需要动画）
-        else if (index === 2 || index === 5) {
-          clockChars[index].textContent = char;
-        }
-      });
-    }
+  } else {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    [...clockEl.children].forEach((digit, index) => {
+      const char = timeStr[index];
+      if (char === ':' || char === prevTimeStr[index]) return;
+      const previous = digit.lastElementChild;
+      previous.getAnimations().forEach(animation => animation.cancel());
+      digit.replaceChildren(previous);
+      if (reducedMotion || document.hidden) {
+        previous.textContent = char;
+        return;
+      }
+      const next = previous.cloneNode();
+      next.textContent = char;
+      digit.append(next);
+      const animation = previous.animate(
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
+        { duration: 990, easing: 'linear', fill: 'forwards' }
+      );
+      const nextAnimation = next.animate(
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
+        { duration: 990, easing: 'linear', fill: 'forwards' }
+      );
+      animation.onfinish = () => {
+        nextAnimation.cancel();
+        digit.replaceChildren(next);
+      };
+    });
   }
 
   // 更新日期显示
@@ -327,6 +311,14 @@ function updateDayProgress(date) {
  */
 function initClock() {
   updateClock();  // 立即更新一次
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
+    if (!event.matches) return;
+    document.querySelectorAll('#clock .clock-digit').forEach(digit => {
+      const current = digit.lastElementChild;
+      digit.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+      if (current) digit.replaceChildren(current);
+    });
+  });
   setInterval(updateClock, 1000);  // 设置每秒更新
 }
 

@@ -108,10 +108,28 @@ body {
     align-items: center;
 }
 
+.clock-digit {
+    display: inline-flex;
+    flex-direction: column;
+    height: 1em;
+    overflow: hidden;
+    line-height: 1em;
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+}
+
+.clock-number {
+    display: block;
+    flex: none;
+    height: 1em;
+}
+
+.clock-separator {
+    line-height: 1em;
+}
+
 /* 时钟字符样式 */
 .clock .char {
     display: inline-block;
-    transition: all 0.3s ease;
     position: relative;
 }
 
@@ -121,12 +139,19 @@ body {
         opacity: 1;
     }
     50% {
-        opacity: 0.3;
+        opacity: 0.55;
     }
 }
 
 .clock .char-colon {
     animation: colonPulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .clock .char-colon,
+    .clock .char-static {
+        animation: none;
+    }
 }
 
 /* 字符跳动动画定义 - 微小跳 */
