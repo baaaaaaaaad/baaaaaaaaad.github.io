@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v15';
+const STATIC_CACHE = 'static-v16';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
@@ -21,6 +21,7 @@ const STATIC_ASSETS = [
   'res/js/sw-register.js',
   'res/js/vendor/marked.min.js',
   'res/js/vendor/purify.min.js',
+  'res/video/rain-poster.jpg',
   'res/icon/rainbow.png',
   'res/icon/bing-color.svg',
   'res/icon/baidu-color.svg',
