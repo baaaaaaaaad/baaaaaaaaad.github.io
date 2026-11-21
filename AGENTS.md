@@ -63,7 +63,17 @@ npx --yes serve .
 - **首页**：单击延迟 250ms 切换主题（走 view-transition 圆形扩散），双击切换浏览器全屏。
 - **文章列表页 / 搜索页 / 详情页 / 管理页**：单击切换主题（不做计数），同样走 view-transition 动画。
 
-首页背景会按清晨、白天、黄昏、夜晚切换极淡的氛围色；日期下方显示「今日进度」。文章列表使用卡片、标签与入场动画，列表页右上角固定显示主题、首页与搜索入口。
+首页使用雨景视频背景和渐变兜底，日期下方显示「今日进度」；首页内通过方向按钮、方向键或滑动切换搜索与文章列表，向上进入全屏、向左进入管理页。文章列表使用卡片和标签。
+
+### 雨景背景与排查
+
+近期背景从椋鸟动画调整为 `res/video/rain.mp4`（`997a620`、`a75e0d9`）；此前的独立椋鸟页面和暂停状态修复属于历史实现，不是当前首页背景。`index.html` 的 `#rain-background` 由 `res/js/index.js` 设置视频地址并调用 `play()`；只有收到 `playing` 事件才加 `is-playing`，CSS 才显示视频。暂停、播放错误或启用系统「减少动态效果」时显示渐变兜底；页面隐藏时暂停。`sw.js` 明确跳过 `rain.mp4`，视频不受该 Service Worker 缓存，离线时不能依赖其播放。
+
+**待排查：请求成功但背景不显示。** 当前 `<video>` 没有 `muted`，自动播放可能被浏览器拦截；请求成功并不代表视频已解码或开始播放。上一轮排查未验证到本项目的实际页面，因此该原因尚未确认；`play()` 的错误目前被静默处理。也需排查不支持的编码、减少动态效果、页面隐藏及旧 Service Worker 缓存。
+
+1. 在目标首页 DevTools 的 Console 执行：`const v = document.querySelector('#rain-background'); ({src: v.currentSrc, paused: v.paused, muted: v.muted, readyState: v.readyState, error: v.error?.message, playing: v.classList.contains('is-playing'), reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, hidden: document.hidden})`。
+2. 在未发生用户交互的刷新过程中观察 `play()` 的拒绝原因：`NotAllowedError` 指向自动播放策略；`NotSupportedError` 或媒体错误应检查实际响应内容、MIME 类型和浏览器支持的视频编码。直接在控制台手动调用 `play()` 可能受用户激活状态影响，不能单独证明自动播放策略。
+3. 若确认自动播放被拦截，方案一是在视频元素添加 `muted`，适合无声背景、改动较小；方案二由用户操作后播放，可保留声音但需要交互。推荐方案一，并在目标浏览器验证；若是编码问题则需转换为浏览器支持的格式。修改静态资源后更新 `sw.js` 缓存版本，并确认浏览器加载到新版本。
 
 ## 实际文件结构
 
@@ -78,6 +88,7 @@ npx --yes serve .
 ├─ res/
 │  ├─ css/index.css           # 全站唯一样式表（主题变量 + 响应式 + 详情/管理页基础布局）
 │  ├─ icon/                   # favicon 与搜索引擎图标
+│  ├─ video/rain.mp4          # 首页雨景背景视频
 │  └─ js/
 │     ├─ config.js            # 导出 CONFIG（GIST_ID / OWNER / SITE_* / PAGE_SIZE）
 │     ├─ gist.js              # GitHub API 封装、Mock 数据、Gist、Util
@@ -226,7 +237,7 @@ npx --yes serve .
 - 首页时钟使用淡入位移：变化时旧数字淡出、新数字淡入；动画结束或取消时恢复为新数字。减少动态效果时直接更新数字、停止冒号呼吸。
 - 无障碍要求：不要删除全局 `:focus-visible` 规则；`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
 - 首页使用 `<main>` + `.sr-only` 的 `<h1>`；文章列表页同样使用 `<main>` + `.sr-only` 的 `<h1>`，列表区域使用 `<section>`；避免同一文档出现多个 `<main>`。
-- 首页氛围背景由 `body[data-time="dawn|day|dusk|night"]` 驱动，时间段在 `res/js/index.js` 的 `getTimeOfDay` 中计算；新增时间段时同步补 `res/css/index.css` 的 `--ambient-a` / `--ambient-b` 变量（含暗色主题）。
+- 首页雨景视频的加载、播放和渐变兜底见「雨景背景与排查」；不要恢复已移除的椋鸟背景或按时间段切换背景的旧说明。
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
 - 文章卡片由 `res/js/posts.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 
