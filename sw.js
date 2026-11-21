@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v11';
+const STATIC_CACHE = 'static-v15';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
@@ -9,7 +9,6 @@ const STATIC_ASSETS = [
   'post.html',
   'admin.html',
   'res/css/index.css',
-  'bird-background.html',
   'res/js/config.js',
   'res/js/gist.js',
   'res/js/index.js',
@@ -69,6 +68,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.hostname !== location.hostname) return;
+
+  if (url.pathname.endsWith('/rain-loop.mp4')) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(

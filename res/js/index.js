@@ -3,17 +3,35 @@
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 
-const birdBackground = document.querySelector('#bird-background');
-function forwardBirdPointer(type, event) {
-  if (!birdBackground?.contentWindow) return;
-  const interactive = event?.target instanceof Element && event.target.closest('a, button, input, textarea, select, .navigation-container, .search-container, header, #article-page, .post-card, .pagination-controls');
-  const rect = birdBackground.getBoundingClientRect();
-  birdBackground.contentWindow.postMessage({ channel: 'bird-pointer', type: interactive ? 'leave' : type, x: event ? event.clientX - rect.left : 0, y: event ? event.clientY - rect.top : 0, pointerType: event?.pointerType }, '*');
+const rainBackground = document.querySelector('#rain-background');
+const backgroundMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+if (rainBackground) {
+  let failed = false;
+  const updateBackground = () => {
+    if (backgroundMotion.matches || document.hidden || failed) {
+      rainBackground.pause();
+      rainBackground.classList.remove('is-playing');
+      return;
+    }
+    if (!rainBackground.getAttribute('src')) rainBackground.src = './res/video/rain.mp4';
+    rainBackground.play().catch(() => {
+      rainBackground.classList.remove('is-playing');
+    });
+  };
+  rainBackground.addEventListener('playing', () => {
+    if (!backgroundMotion.matches && !document.hidden && !failed) {
+      rainBackground.classList.add('is-playing');
+    }
+  });
+  rainBackground.addEventListener('error', () => {
+    failed = true;
+    rainBackground.classList.remove('is-playing');
+  });
+  backgroundMotion.addEventListener('change', updateBackground);
+  document.addEventListener('visibilitychange', updateBackground);
+  updateBackground();
 }
-for (const type of ['pointermove', 'pointerdown', 'pointerup']) {
-  window.addEventListener(type, event => forwardBirdPointer(type.slice(7), event));
-}
-document.addEventListener('pointerleave', () => forwardBirdPointer('leave'));
 
 // 页面状态（内存中即可）
 const state = {
