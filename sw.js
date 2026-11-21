@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
 
   if (url.hostname !== location.hostname) return;
 
-  if (url.pathname.endsWith('/rain-loop.mp4')) return;
+  if (url.pathname.endsWith('/rain.mp4')) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(
