@@ -21,7 +21,7 @@ const STATIC_ASSETS = [
   'res/js/sw-register.js',
   'res/js/vendor/marked.min.js',
   'res/js/vendor/purify.min.js',
-  'res/video/rain-poster.jpg',
+  'res/img/rain.jpg',
   'res/icon/rainbow.png',
   'res/icon/bing-color.svg',
   'res/icon/baidu-color.svg',
