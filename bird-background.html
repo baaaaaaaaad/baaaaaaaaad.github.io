@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>椋鸟群飞</title>
   <style>
-    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: linear-gradient(to bottom, rgb(226,184,160) 0%, rgb(222,142,140) 44.4%, rgb(170,124,162) 74%, rgb(28,18,30) 74%); }
     canvas { display: block; width: 100%; height: 100%; }
   </style>
 </head>
@@ -45,11 +45,17 @@
   const ptr = { x: -1e4, y: -1e4, burst: 0 };
 
   function resize() {
-    dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
-    cv.width = W * dpr; cv.height = H * dpr; bc.width = Math.max(1, W * BS | 0); bc.height = Math.max(1, H * BS | 0);
+    const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    if (!width || !height || (W === width && H === height && dpr === ratio)) return false;
+    const oldW = W, oldH = H;
+    dpr = ratio; W = width; H = height;
+    if (oldW && oldH) for (let i = 0; i < MAX; i++) { x[i] *= W / oldW; y[i] *= H / oldH; }
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); bc.width = Math.max(1, W * BS | 0); bc.height = Math.max(1, H * BS | 0);
     hc.width = Math.ceil(W / 10); hc.height = Math.ceil(H / 10);
     sc = Math.max(.5, Math.min(W / 1280, 1.4)); cs = Math.max(14, 22 * sc);
     gw = Math.ceil(W / cs) + 1; gh = Math.ceil(H / cs) + 1; cellStart = new Int32Array(gw * gh + 1); cursor = new Int32Array(gw * gh);
+    return true;
   }
   function init() {
     for (let i = 0; i < MAX; i++) {
@@ -194,7 +200,6 @@
     if (data.type !== 'leave' && (!Number.isFinite(data.x) || !Number.isFinite(data.y))) return;
     setPointer(data.type, data.x, data.y, data.pointerType);
   });
-  addEventListener('resize', () => { resize(); if (isLowEnd()) { drawBirds(); draw(0); } });
 
   function isLowEnd() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
@@ -207,15 +212,25 @@
     return false;
   }
 
-  resize(); init();
-  if (isLowEnd()) {
-    easeTo(1); step(0.016, 0, 0); drawBirds(); draw(0);
-    return;
+  let last = 0, t = 0, frame = 0, ema = 16.7, animation = 0, initialized = false;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  function renderSize() {
+    if (!resize()) return;
+    if (!initialized) { init(); initialized = true; }
+    drawBirds(); draw(t);
   }
+  function updateMotion() {
+    if (animation) cancelAnimationFrame(animation);
+    animation = 0; last = 0;
+    if (!isLowEnd() && initialized) animation = requestAnimationFrame(loop);
+  }
+  addEventListener('resize', () => { renderSize(); if (!animation) updateMotion(); });
+  motion.addEventListener('change', updateMotion);
+  renderSize();
+  updateMotion();
 
-  let last = 0, t = 0, frame = 0, ema = 16.7;
   function loop(ms) {
-    requestAnimationFrame(loop);
+    animation = requestAnimationFrame(loop);
     const dt = Math.min((ms - last) / 1000 || .016, .05); last = ms; t += dt; frame++;
     ema += (dt * 1000 - ema) * .05;
     if (frame % 60 === 0) { if (ema > 24 && nAct > 1500) nAct = Math.max(1500, nAct * .88 | 0); else if (ema < 17.5 && nAct < cap()) nAct = Math.min(cap(), (nAct * 1.05 | 0) + 10); }
@@ -228,7 +243,6 @@
     gs = gp * (1 + .3 * Math.sin(.23 * t) + .12 * Math.sin(.61 * t + 1)); tp += dt * gs;
     easeTo(dt); step(dt, tp, frame); drawBirds(); draw(t);
   }
-  requestAnimationFrame(loop);
 })();  </script>
 </body>
 </html>
