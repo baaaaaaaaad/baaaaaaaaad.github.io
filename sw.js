@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v17';
+const STATIC_CACHE = 'static-v18';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [

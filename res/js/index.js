@@ -162,6 +162,40 @@ function applyFilter(animate = false) {
   renderList(animate);
 }
 
+let listLoadPromise = null;
+let listLoaded = false;
+let listFailed = false;
+
+function loadPosts() {
+  if (listLoaded || listLoadPromise) return listLoadPromise;
+  listFailed = false;
+  renderListStatus('正在加载文章…');
+  const list = document.querySelector('#post-list');
+  list?.setAttribute('aria-busy', 'true');
+  list?.querySelector('.post-list-status')?.classList.add('is-loading');
+  listLoadPromise = Gist.getIndex().then(idx => {
+    state.all = idx.posts || [];
+    listLoaded = true;
+    rebuildFilters();
+    applyFilter(true);
+  }).catch(err => {
+    listFailed = true;
+    renderListStatus(`加载失败：${err.message} `);
+    const status = list?.querySelector('.post-list-status');
+    if (status) {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.textContent = '重试';
+      retry.addEventListener('click', loadPosts);
+      status.append(retry);
+    }
+  }).finally(() => {
+    list?.removeAttribute('aria-busy');
+    listLoadPromise = null;
+  });
+  return listLoadPromise;
+}
+
 async function main() {
   // 等待 DOM 加载完成
   if (document.readyState === 'loading') {
@@ -182,25 +216,23 @@ async function main() {
     siteDescEl.textContent = CONFIG.SITE_DESC;
   }
 
-  // 拉取索引并渲染
   renderListStatus('正在加载文章…');
-  const idx = await Gist.getIndex();
-  state.all = idx.posts || [];
-  rebuildFilters();
-  applyFilter(true);
+  document.querySelector('#post-list .post-list-status')?.classList.add('is-loading');
 
   // 绑定交互
   const tagEl = document.querySelector('#tag');
   if (tagEl) {
     tagEl.addEventListener('change', e => {
-      state.tag = e.target.value; applyFilter();
+      state.tag = e.target.value;
+      if (listLoaded) applyFilter();
     });
   }
 
   const qEl = document.querySelector('#q');
   if (qEl) {
     qEl.addEventListener('input', e => {
-      state.q = e.target.value; applyFilter();
+      state.q = e.target.value;
+      if (listLoaded) applyFilter();
     });
   }
 
@@ -217,6 +249,12 @@ async function main() {
       const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
       if (state.page < totalPages) { state.page++; renderList(true); }
     });
+  }
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(() => { if (!listFailed) loadPosts(); }, { timeout: 3000 });
+  } else {
+    window.setTimeout(() => { if (!listFailed) loadPosts(); }, 1000);
   }
 }
 
@@ -527,6 +565,7 @@ function togglePage(pageName, focus = true) {
   const views = { 'main-page': 'home', 'search-page': 'search', 'article-page': 'article' };
   const view = views[pageName];
   if (!view) return;
+  if (view === 'article' && !listFailed) loadPosts();
   const stage = document.getElementById('slide-stage');
   stage.dataset.view = view;
   Object.keys(views).forEach(id => {
