@@ -729,6 +729,24 @@ html.theme-transitioning body * {
     padding: 20px max(24px, calc((100% - 800px) / 2));
 }
 
+.slide-stage > #article-page,
+html:has(body.posts-page) {
+    scrollbar-width: thin;
+}
+
+@supports not (scrollbar-width: thin) {
+    .slide-stage > #article-page::-webkit-scrollbar,
+    html:has(body.posts-page)::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .slide-stage > #article-page::-webkit-scrollbar-thumb,
+    html:has(body.posts-page)::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.55);
+        border-radius: 8px;
+    }
+}
+
 .article-header {
     margin-bottom: 20px;
 }

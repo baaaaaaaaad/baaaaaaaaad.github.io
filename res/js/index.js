@@ -238,16 +238,26 @@ async function main() {
 
   const prevEl = document.querySelector('#prev');
   if (prevEl) {
-    prevEl.addEventListener('click', () => {
-      if (state.page > 1) { state.page--; renderList(true); }
+    prevEl.addEventListener('click', event => {
+      if (state.page > 1) {
+        state.page--;
+        renderList(true);
+        document.querySelector('#article-page')?.scrollTo({ top: 0, behavior: 'instant' });
+        if (event.detail === 0) document.querySelector('#post-list a')?.focus({ preventScroll: true });
+      }
     });
   }
 
   const nextEl = document.querySelector('#next');
   if (nextEl) {
-    nextEl.addEventListener('click', () => {
+    nextEl.addEventListener('click', event => {
       const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-      if (state.page < totalPages) { state.page++; renderList(true); }
+      if (state.page < totalPages) {
+        state.page++;
+        renderList(true);
+        document.querySelector('#article-page')?.scrollTo({ top: 0, behavior: 'instant' });
+        if (event.detail === 0) document.querySelector('#post-list a')?.focus({ preventScroll: true });
+      }
     });
   }
 
@@ -614,7 +624,9 @@ function setupSlides() {
     if (view === 'home' && event.key === 'ArrowRight') target = 'search';
     if (view === 'home' && event.key === 'ArrowDown') target = 'article';
     if (view === 'home' && event.key === 'ArrowLeft') target = 'admin';
-    if ((view === 'search' && event.key === 'ArrowLeft') || (view === 'article' && event.key === 'ArrowUp') || (view !== 'home' && event.key === 'Escape')) target = 'home';
+    if ((view === 'search' && event.key === 'ArrowLeft') ||
+        (view === 'article' && event.key === 'ArrowUp' && document.getElementById('article-page').scrollTop <= 0) ||
+        (view !== 'home' && event.key === 'Escape')) target = 'home';
     if (!target) return;
     event.preventDefault();
     if (target === 'admin') window.location.href = 'admin.html';

@@ -166,16 +166,26 @@ async function main() {
 
   const prevEl = document.querySelector('#prev');
   if (prevEl) {
-    prevEl.addEventListener('click', () => {
-      if (state.page > 1) { state.page--; renderList(true); }
+    prevEl.addEventListener('click', event => {
+      if (state.page > 1) {
+        state.page--;
+        renderList(true);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (event.detail === 0) document.querySelector('#post-list a')?.focus({ preventScroll: true });
+      }
     });
   }
 
   const nextEl = document.querySelector('#next');
   if (nextEl) {
-    nextEl.addEventListener('click', () => {
+    nextEl.addEventListener('click', event => {
       const totalPages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-      if (state.page < totalPages) { state.page++; renderList(true); }
+      if (state.page < totalPages) {
+        state.page++;
+        renderList(true);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (event.detail === 0) document.querySelector('#post-list a')?.focus({ preventScroll: true });
+      }
     });
   }
 }
