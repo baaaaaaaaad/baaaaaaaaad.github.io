@@ -52,28 +52,25 @@ npx --yes serve .
 
 ## 页面
 
-- `index.html`：首页时钟、日期、今日进度；右上角提供搜索与文章列表入口。
+- `index.html`：首页时钟、日期、今日进度，以及同页搜索和文章列表面板。
 - `posts.html`：文章列表页（标签筛选、站内搜索、分页）。
 - `search.html`：外部搜索引擎页（Bing / 百度 / Google，图标可拖拽排序，顺序存 `localStorage.searchEngineOrder`）。
 - `post.html?slug=...`：文章详情页（Markdown 渲染、阅读排版、主题切换、上一篇/下一篇）。
 - `admin.html`：管理页（新建 / 编辑 / 删除文章，需要 PAT）。
 
-首页、文章列表页、搜索页、详情页、管理页默认 `body.dark-mode`，首次访问显示暗色主题；主题状态存 `localStorage.theme`。右上角主题按钮行为：
+各页面 HTML 默认 `body.dark-mode`。文章列表页、独立搜索页和详情页使用共享主题模块，读取并保存 `localStorage.theme`，单击按钮切换主题；首页和管理页当前没有初始化共享导航与主题按钮，默认暗色，也不读取已保存主题。
 
-- **首页**：单击延迟 250ms 切换主题（走 view-transition 圆形扩散），双击切换浏览器全屏。
-- **文章列表页 / 搜索页 / 详情页 / 管理页**：单击切换主题（不做计数），同样走 view-transition 动画。
-
-首页使用雨景视频背景和渐变兜底，日期下方显示「今日进度」；首页内通过方向按钮、方向键或滑动切换搜索与文章列表，向上进入全屏、向左进入管理页。文章列表使用卡片和标签。
+首页使用雨景视频、静态雨景图及渐变兜底，日期下方显示「今日进度」；首页内通过方向按钮、方向键或滑动切换搜索与文章列表，向上进入全屏、向左进入管理页。文章列表使用卡片和标签。
 
 ### 雨景背景与排查
 
-近期背景从椋鸟动画调整为 `res/video/rain.mp4`（`997a620`、`a75e0d9`）；此前的独立椋鸟页面和暂停状态修复属于历史实现，不是当前首页背景。`index.html` 的 `#rain-background` 由 `res/js/index.js` 设置视频地址并调用 `play()`；只有收到 `playing` 事件才加 `is-playing`，CSS 才显示视频。暂停、播放错误或启用系统「减少动态效果」时显示渐变兜底；页面隐藏时暂停。`sw.js` 明确跳过 `rain.mp4`，视频不受该 Service Worker 缓存，离线时不能依赖其播放。
+首页的 `#rain-background` 默认静音、循环、内联播放，由 `res/js/index.js` 设置视频地址并调用 `play()`；只有收到 `playing` 事件才显示视频。播放失败、页面隐藏或启用「减少动态效果」时显示 `res/img/rain.jpg`，图片不可用时使用渐变兜底；页面隐藏时暂停。`sw.js` 跳过 `rain.mp4`，离线时不能依赖视频播放。当前没有声音切换按钮。
 
-**待排查：请求成功但背景不显示。** 当前 `<video>` 没有 `muted`，自动播放可能被浏览器拦截；请求成功并不代表视频已解码或开始播放。上一轮排查未验证到本项目的实际页面，因此该原因尚未确认；`play()` 的错误目前被静默处理。也需排查不支持的编码、减少动态效果、页面隐藏及旧 Service Worker 缓存。
+**排查背景不显示：** 请求成功不代表视频已解码或开始播放；`play()` 的错误目前被静默处理。检查浏览器自动播放策略、编码、减少动态效果、页面隐藏和旧 Service Worker 缓存。
 
 1. 在目标首页 DevTools 的 Console 执行：`const v = document.querySelector('#rain-background'); ({src: v.currentSrc, paused: v.paused, muted: v.muted, readyState: v.readyState, error: v.error?.message, playing: v.classList.contains('is-playing'), reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, hidden: document.hidden})`。
 2. 在未发生用户交互的刷新过程中观察 `play()` 的拒绝原因：`NotAllowedError` 指向自动播放策略；`NotSupportedError` 或媒体错误应检查实际响应内容、MIME 类型和浏览器支持的视频编码。直接在控制台手动调用 `play()` 可能受用户激活状态影响，不能单独证明自动播放策略。
-3. 若确认自动播放被拦截，方案一是在视频元素添加 `muted`，适合无声背景、改动较小；方案二由用户操作后播放，可保留声音但需要交互。推荐方案一，并在目标浏览器验证；若是编码问题则需转换为浏览器支持的格式。修改静态资源后更新 `sw.js` 缓存版本，并确认浏览器加载到新版本。
+3. 视频已设置 `muted`；若仍被拦截，检查目标浏览器策略，必要时评估用户交互后播放。若是编码问题则转换为兼容格式。修改静态资源后更新 `sw.js` 缓存版本，并确认浏览器加载到新版本。
 
 ## 实际文件结构
 
@@ -89,15 +86,16 @@ npx --yes serve .
 │  ├─ css/index.css           # 全站唯一样式表（主题变量 + 响应式 + 详情/管理页基础布局）
 │  ├─ icon/                   # favicon 与搜索引擎图标
 │  ├─ video/rain.mp4          # 首页雨景背景视频
+│  ├─ img/rain.jpg            # 首页静态背景兜底
 │  └─ js/
 │     ├─ config.js            # 导出 CONFIG（GIST_ID / OWNER / SITE_* / PAGE_SIZE）
 │     ├─ gist.js              # GitHub API 封装、Mock 数据、Gist、Util
-│     ├─ index.js             # 首页入口：时钟、日期、今日进度与主题
+│     ├─ index.js             # 首页入口：时钟、背景、搜索与面板切换
 │     ├─ posts.js             # 文章列表页入口：筛选、搜索、分页
 │     ├─ search.js            # 搜索页入口：引擎选择、拖拽排序、回车搜索
 │     ├─ post.js              # 详情页入口：渲染 Markdown、元信息与上下篇导航
 │     ├─ admin.js             # 管理页入口：新建 / 编辑 / 删除
-│     ├─ theme.js             # 首页 / 文章列表 / 搜索 / 管理页共用的主题切换模块
+│     ├─ theme.js             # 文章列表 / 搜索 / 详情页共用的主题切换模块
 │     ├─ nav.js               # 全站共享导航渲染器（ES Module，floating 变体）
 │     ├─ sw-register.js       # 全站共用的 SW 注册脚本（经典脚本，defer）
 │     └─ vendor/
@@ -107,17 +105,49 @@ npx --yes serve .
 └─ .gitignore
 ```
 
-`config.js` 与 `gist.js` 是各页面入口共享的模块；`theme.js` 是首页 / 文章列表页 / 搜索页 / 管理页共享的主题模块。修改数据读写行为时只需改前两处。
+`config.js` 与 `gist.js` 是各页面入口共享的数据模块；文章列表、搜索与详情页使用 `theme.js`。修改数据行为时还需检查调用方和 Mock 分支。
 
 页面加载关系（修改时保持一致）：
 
-- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）。导航由 `index.js` 导入 `nav.js` 的 `renderNav('index')` 渲染。
+- `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）；使用首页自身的面板导航，不初始化共享导航。
 - `posts.html`：`res/css/index.css` + `type="module"` 的 `res/js/posts.js` + `res/js/sw-register.js`（defer）。导航由 `posts.js` 导入 `nav.js` 渲染。
 - `search.html`：`res/css/index.css` + `type="module"` 的 `res/js/search.js` + `res/js/sw-register.js`（defer）。搜索引擎图标为 `<button>`，可拖拽排序；导航由 `search.js` 导入 `nav.js` 渲染。
 - `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。`post.js` 导入 `nav.js` 渲染 floating 导航，并在 `DOMContentLoaded` 后从 `theme.js` 初始化主题。
-- `admin.html`：`res/css/index.css` + `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）。`admin.js` 先渲染共享导航，再调用 `setupThemeToggle`。
+- `admin.html`：`res/css/index.css` + `type="module"` 的 `res/js/admin.js` + `res/js/sw-register.js`（defer）；当前未初始化共享导航及主题切换。
 
 不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。不要改回 CDN 加载 marked / DOMPurify。
+
+## 功能清单与回归约定
+
+修改相关代码时，应按本节及「修改后的验证」检查受影响功能和相邻调用方；未能验证的项目须明确说明，不能把 Mock 成功当成真实 API 或离线验证。以下描述当前行为，不表示所有边界都是期望设计。
+
+### 首页与同页搜索
+
+- 首页默认暗色；本地时钟每秒更新，日期和今日进度按本地时间计算；减少动态效果时关闭时钟动画。背景默认静音播放，静态图和渐变是播放前及失败时的兜底。
+- 首页方向按钮及方向键：上切换全屏、左进入管理页、下进入文章面板、右进入搜索面板；手势也可切换。搜索面板左方向键、文章面板顶部上方向键或非输入控件内的 Esc 返回首页。文章面板未到顶部时上方向键保留原生滚动；输入、选择等控件内不拦截方向键。
+- 切换面板同步 `inert`、`aria-hidden` 和焦点；离开首页时方向导航不可交互。触摸由浏览器接管时可能触发 `pointercancel`，应保留返回按钮并在真机验证。
+- 同页搜索支持点击引擎或 Enter/空格激活图标，输入框回车使用排序首位引擎；空输入不跳转。引擎拖拽顺序存 `localStorage.searchEngineOrder`，有输入时禁止拖拽；本面板没有清空按钮和空输入提示，不应与独立搜索页混淆。
+
+### 文章列表与详情
+
+- 首页内嵌列表空闲预取，提前进入立即加载；加载动画、失败重试、并发去重和加载中筛选须正常。独立 `posts.html` 启动加载，当前没有重试按钮，加载成功后才绑定筛选事件。
+- 两处列表展示已发布文章，按创建时间倒序，按标签精确筛选、标题/摘要/标签不区分大小写搜索，默认每页 10 篇；空列表与无匹配结果提示不同。标签选项目前来自全部索引，包括草稿。筛选返回第一页，不重复播放卡片入场动画。
+- 翻页后首页滚动面板归顶、独立列表滚动文档归顶；键盘激活翻页后焦点转到首篇链接，页码使用 live region。细原生滚动条遵循系统显示设置，不保证所有平台停止滚动时自动隐藏。
+- 详情通过 slug 定位，读取元数据、渲染经 DOMPurify 净化的 Markdown，处理开头重复 H1；上下篇只在已发布文章中按创建时间升序确定，无相邻文章时隐藏导航。缺参数、资源或文件及请求失败均需显示错误并结束加载状态。
+- 当前详情查找不检查 `status`，知道 slug 的人可能访问公开 Gist 中的草稿；草稿状态不是访问控制。修改 slug 会改变详情 URL，即使文件名保持不变也不能保证旧链接有效。
+
+### 独立搜索、主题与管理
+
+- 独立搜索页支持 Bing、百度、Google：回车使用首个引擎、点击或键盘激活指定引擎；空输入提示且不跳转，清空按钮清空并聚焦，Esc 清空并失焦。顺序与首页共用本地存储，拖拽排序目前没有键盘排序替代。
+- 文章列表、独立搜索和详情页由 `renderNav` 渲染导航，再初始化共享主题；主题持久化，支持 View Transition，不支持或减少动态效果时直接切换。首页和管理页目前没有共享主题按钮。
+- 管理页提供 PAT 保存、显隐和确认清除；文章表格有加载、空和错误状态，支持编辑、删除及新建。仅在受控测试 Gist 上验证写操作：新建/更新同步写 Markdown 与索引，编辑保留创建时间及原文件名，删除需确认；空标题不写入，清空已有编辑内容前需确认。
+- 当前新建确认只检查编辑状态、标题和正文；slug 缺少唯一性校验，索引可能重复保存正文，多客户端写入可能覆盖。管理表格将索引字段插入 `innerHTML`，存在注入风险；这些是待处理边界，不应当作安全保证。
+
+### 数据、离线与无障碍
+
+- 真实读取匿名访问公开 Gist；写入使用本地 PAT，Mock 只修改内存、刷新重置，不验证真实鉴权和持久化。详情复用 Gist 响应；正文只有 `truncated === false` 且 `content` 为字符串时使用内嵌内容，否则走 raw URL；索引走 raw URL。
+- Service Worker 仅处理 GET：API 和导航 network-first，其他同源静态资源 cache-first；视频和跨域 raw 不在其缓存策略内。HTTP 错误、离线详情回退与版本更新存在待验证限制，不应承诺离线正文必定可用。
+- 保留可见键盘焦点、语义标签、live region、加载状态、窄屏可操作性及 `prefers-reduced-motion` 降级；验证滚动条时保留原生滚动和系统辅助功能偏好。
 
 ## 数据读写
 
@@ -154,7 +184,7 @@ npx --yes serve .
 
 - 列表只展示 `status === 'published'` 的文章，按 `created_at` 倒序。
 - Markdown 文件带 YAML Front Matter（冗余存储元数据），但 `index.json` 才是主数据源。
-- 文件名由「UTC 日期 + slug」生成；更新文章时复用原文件名，避免链接失效。
+- 文件名由「UTC 日期 + slug」生成；更新时复用原文件名。文章 URL 使用 slug，修改 slug 仍会使旧链接失效。
 - 删除文章 = 在 Gist PATCH 请求中把该文件名设为 `null`，同时回写 `index.json`。
 - `slug` 生成规则见 `res/js/gist.js` 的 `Util.slugify`：小写、保留中英文数字、空白转 `-`。
 
@@ -167,7 +197,7 @@ npx --yes serve .
 - 路径统一相对当前页面，静态资源放在 `res/` 下。
 - 样式只改 `res/css/index.css`；使用已有 CSS 变量（`--bg-color`、`--text-color`、`--accent-color` 等）和 `clamp()` 响应式写法。
 - 首页与文章列表/详情/管理页的布局通过 `body.posts-page`、`body.post-page`、`body.admin-page` 隔离，不要破坏首页的 flex 居中布局。
-- 主题切换依赖 `body.dark-mode` 与 `localStorage.theme`，首页 / 文章列表页 / 搜索页 / 详情页 / 管理页默认 `<body class="dark-mode">` 防止刷新闪烁；JS 初始化若 localStorage 无值则回退到 `'dark'`。主题逻辑统一在 `res/js/theme.js`，`setupThemeToggle({ multiClick: true })` 仅在首页启用双击全屏，其余页面单击切换。
+- 页面默认 `body.dark-mode`；文章列表、独立搜索和详情页通过 `res/js/theme.js` 读取并保存 `localStorage.theme`，缺省为暗色。首页和管理页目前不初始化该模块；不要误认为它们已共享主题。
 - DOM 查询使用 `document.querySelector` 并保持空值判断；页面入口脚本只应操作本页存在的元素。
 - 缩进：CSS 4 空格；JS 2 空格。
 - 注释使用中文，不要为显而易见的代码新增注释。
@@ -248,26 +278,23 @@ npx --yes serve .
 - 页面入口已按页面拆分：`index.js`、`posts.js`、`search.js`、`post.js`、`admin.js` 各自只加载一次。新增页面时不要把它们全部引入，否则会重复绑定事件。
 - `res/js/index.js` 是 ES Module，顶层函数不会挂到 `window`；不要在 HTML 里用 `onclick="..."` 之类的内联写法，统一用 `addEventListener` 绑定。
 - `res/js/posts.js` 用 `#post-list` 存在性做守卫；不要在无列表元素的页面加载它。
-- 首页 `#page-toggle` 是普通链接 `<a href="posts.html">`，不再由 JS 切换页面；不要在 `index.js` 里重新绑定 click 或恢复 `togglePage`。
+- 首页文章和搜索入口切换同页的面板；`togglePage` 维护视图、焦点与无障碍状态，不要误改为独立页面跳转。
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
-- 导航统一由 `res/js/nav.js` 的 `renderNav(page)` 渲染到各页的 `#site-nav`；`page` 支持 `index / posts / search / post / admin`，全部使用 floating 变体。不要在页面里重新写死导航或静态 `#theme-toggle`。- 必须保证先 `renderNav(...)` 再 `setupThemeToggle(...)`，否则主题按钮尚未插入；`post.js` 在 `DOMContentLoaded` 后初始化主题，其余入口在渲染后立即或同一初始化流程中调用。
-- `#site-nav` 为空占位，`nav.js` 注入 `.navigation-container` 浮层导航；所有页面都通过该模块生成图标、主题按钮和链接。
-- 文章列表页固定为横排；详情页和管理页默认纵排，在窄屏（详情 ≤920px、管理 ≤1100px）回退为横排，避免固定纵排遮挡正文或表单。不要退回为页面类单独写一套完整导航。
+- 文章列表、搜索和详情页通过 `res/js/nav.js` 的 `renderNav(page)` 渲染到 `#site-nav`；必须先渲染再初始化主题按钮。首页和管理页目前不调用共享导航。
+- 共享导航样式支持横排与响应式纵排；当前文章列表页固定横排，详情页窄屏回退横排。
 - 详情页上一篇/下一篇使用「已发布 + `created_at` 升序」列表定位，不要退回为直接取 `index.json` 原始数组的 `±1`，否则草稿和手动排序会污染导航。
 - 详情页渲染前会处理正文开头的 H1：与标题重复时移除，否则降级为 H2（`post.js` 的 `normalizeLeadingTitle`），避免一页出现两个 H1；正文其他位置的 H1 样式按 `article h1` 收敛。
 - 详情页 `#navigation` 默认带 `hidden`，只有存在上一篇/下一篇时才移除；`#next-post` 需要 `margin-left: auto` 才能单独靠右。
-- 首页文章列表按钮使用内联 SVG，已移除 Font Awesome；不要为单个图标重新引入整站图标库。
-- 首页 `#page-toggle`（文章列表）与搜索页入口常显；`#theme-toggle` 在首页使用计数机制（250ms 内累计点击数）：单击=切换主题、双击=浏览器全屏，不再有第三击动作。不要改回即时 click 处理，否则双击时会先触发一次主题切换。
-- 文章列表页 / 搜索页 / 详情页 / 管理页的 `#theme-toggle` 通过 `theme.js` 单击切换主题（不做计数），搜索页与详情页没有全屏入口。
+- 首页方向按钮控制面板、管理页和全屏；文章列表、搜索和详情页的 `#theme-toggle` 由 `theme.js` 单击切换主题。
 - `theme.js` 的 `toggleFullscreen()` 使用 WebKit/MS 前缀做兼容，iOS Safari 与部分受限 WebView 不支持会静默跳过；不要依赖其返回值。
-- 首页时钟使用淡入位移：变化时旧数字淡出、新数字淡入；动画结束或取消时恢复为新数字。减少动态效果时直接更新数字、停止冒号呼吸。
+- 首页时钟变化的数字使用位移动画；页面隐藏或减少动态效果时直接更新数字。
 - 无障碍要求：不要删除全局 `:focus-visible` 规则；`prefers-reduced-motion` 会关闭字符跳动、卡片入场和主题圆形扩散，修改动画时保持该降级。
 - 首页使用 `<main>` + `.sr-only` 的 `<h1>`；文章列表页同样使用 `<main>` + `.sr-only` 的 `<h1>`，列表区域使用 `<section>`；避免同一文档出现多个 `<main>`。
 - 首页雨景视频的加载、播放和渐变兜底见「雨景背景与排查」；不要恢复已移除的椋鸟背景或按时间段切换背景的旧说明。
 - 主题切换使用 `document.startViewTransition` + `html.theme-transitioning`；不支持或用户偏好减少动画时回退为直接切换。`--theme-x` / `--theme-y` 是圆形扩散的圆心，不要删除。
-- 文章卡片由 `res/js/posts.js` 的 `createPostCard` 生成，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
+- 首页与独立列表各自生成文章卡片，`#post-list.animate-in` 只用于首次加载和翻页；筛选输入时不要加该 class，否则每输入一个字符都会重播动画。
 
 - 搜索引擎图标顺序保存在 `localStorage.searchEngineOrder`；搜索框有内容时禁止拖拽，这是有意行为。
 - 搜索框清空按钮 `#search-clear` 由 `res/js/search.js` 的 `updateSearchAffordances` 根据输入内容显隐；`Esc` 会清空并失焦；空输入回车或点图标会提示而不会跳转。输入框必须保留 `min-width: 0`，否则移动端会被搜索引擎图标挤爆。
@@ -281,18 +308,18 @@ npx --yes serve .
 
 无自动化测试，按以下清单人工验证：
 
-1. `http://localhost:8000/` 时钟每**秒**触发跳动（不只是首次加载），小时个位→十位→分钟个位→十位→秒个位→十位跳动高度依次增大；日期与今日进度正确；首屏直接显示暗色（不闪烁亮色）。
-2. 主题按钮：首页单击走 view-transition 圆形扩散切主题，**刷新后**持久化；双击进入浏览器全屏（ESC 原生退出）；不再有三击/`Shift+T` 显隐动作。
-3. 首页点击文章列表图标进入 `posts.html`：标签筛选、搜索、分页正常；列表页右上角可返回首页或进入搜索页。各页导航都应由 `renderNav` 渲染，每页只有一个 `#theme-toggle`，主题按钮可用。
+1. `http://localhost:8000/`：时钟每秒更新，日期与今日进度正确；首页默认暗色，视频静音播放，加载前、失败及减少动态效果时静态背景可见。
+2. 首页方向按钮、方向键与手势切换同页搜索和文章面板、全屏及管理页；检查焦点、`inert`、`aria-hidden`、输入控件按键、文章面板顶部及非顶部上方向键。触摸手势在真实设备验证。
+3. 首页空闲预取、提前切入、加载中筛选、快速切换去重及失败重试正常；首页和 `posts.html` 的筛选、搜索、空状态、分页归顶与键盘焦点正常。文章列表、搜索和详情页主题切换及刷新后持久化；首页和管理页当前没有共享主题按钮。
 4. `search.html`：输入关键词回车使用排序第一的引擎，点击图标使用对应引擎；空输入会提示且不跳转；清空按钮与 `Esc` 行为正常；拖拽图标可调整顺序，刷新后保持（`localStorage.searchEngineOrder`），输入框有内容时禁止拖拽；图标可用键盘 Tab 聚焦并回车触发。
-5. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`：首屏暗色，右上角主题按钮可切换且与首页共享 `localStorage.theme`；标题、日期（`YYYY.MM.DD`）与标签正常，标签为空时没有多余分隔符；正文的标题、列表、引用、代码块、表格与图片按阅读宽度排版，窄屏下 `pre` / 表格横向滚动而不撑破页面；上一篇/下一篇只在存在时显示，单独“下一篇”靠右，没有上下篇时底部不出现空分隔线。`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
-6. 打开 `admin.html`，首屏直接暗色、右上角有主题按钮且切换后和首页共享同一份 `localStorage.theme`；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
+5. 下载/替换 vendor 依赖后，先 Read 文件前几行确认有实际代码（不是 0 字节空文件），再打开 `post.html?slug=...`：首屏暗色，主题按钮可切换并与独立列表、搜索页共享 `localStorage.theme`；标题、日期（`YYYY.MM.DD`）与标签正常，标签为空时没有多余分隔符；正文的标题、列表、引用、代码块、表格与图片按阅读宽度排版，窄屏下 `pre` / 表格横向滚动而不撑破页面；上一篇/下一篇只在存在时显示，单独“下一篇”靠右，没有上下篇时底部不出现空分隔线。`Network` 面板确认 `marked.min.js` / `purify.min.js` 加载自 `res/js/vendor/`（不是 CDN）。若看到「Markdown 渲染资源加载失败」提示，优先检查 vendor 文件是否为空。
+6. 打开 `admin.html`，首屏默认暗色；文章列表拉取期间表格显示「加载中...」，失败时显示错误提示，零数据时显示引导行（不是空白表格）。
    未设置 PAT 时：输入框可编辑、placeholder 为原始提示、meta 行显示「仅在本地使用」；保存后 → 输入框自动 disabled + 灰化、眼睛按钮隐藏、meta 行改为「已在本地」、placeholder 改为「已保存（点击清除后可修改）」；点击「清除」→ 恢复可编辑状态。
-   标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
+   已设置 PAT 时，标题为空点击保存 → toast「标题不能为空」、不触发 API。编辑中有内容点击「新建」→ 弹确认框，取消则不清空。
    点击某篇文章「编辑」→ 表单回填正确，slug 下方显示灰色 hint（含锁定的文件名），正文正确（YAML front matter 已剥离）；新建模式下 slug hint 隐藏。
    文章列表表格超过 6 行时表头固定、内部滚动；小屏（≤768px）下表单变单列，PAT 工具栏也变纵向。
    窄屏下表格出现横向滚动条（列不被挤压变形）；Toast 显示在顶部居中（软键盘弹出时不被遮挡）。
-   新建、编辑、删除走真实 Gist（不是内存 Mock），刷新后持久化。
-7. Service Worker：DevTools → Application → Service Workers 看到 `sw.js` 已注册；Cache Storage 里出现 `static-v5` 和 `dynamic-v5`；离线模式下刷新任意页面（含 `posts.html`、`search.html` 与 `post.html?slug=...`），静态资源仍能加载（Gist API 离线会显示缓存或错误提示）。
+   仅在受控测试 Gist 上验证真实新建、编辑和删除，确认刷新后持久化；不要用真实生产数据做破坏性测试。
+7. Service Worker：检查注册和 `sw.js` 中实际版本的缓存；分别测试在线、离线、HTTP 错误及带 slug 的详情地址，记录实际回退。跨域 raw 和视频未由当前策略缓存，不保证离线正文可用。
 8. 系统启用「减少动态效果」后，字符跳动、卡片入场和主题圆形扩散应关闭，主题切换降级为直接切换；键盘 Tab 能看到清晰焦点。
 9. 提交前运行 `git diff --check` 检查空白错误，并确认 `git status` 中没有 PAT 或本地配置文件。
