@@ -651,6 +651,12 @@ html.theme-transitioning body * {
 .slide-stage[data-view="search"] > #search-page { transform: translateX(0); }
 .slide-stage[data-view="article"] > #main-page { transform: translateY(100%); }
 .slide-stage[data-view="article"] > #article-page { transform: translateY(0); }
+.slide-stage > #admin-page { transform: translateX(100%); overflow-y: auto; background: var(--bg-color); }
+.slide-stage[data-view="admin"] > #main-page { transform: translateX(-100%); }
+.slide-stage[data-view="admin"] > #admin-page { transform: translateX(0); }
+#admin-page .admin-header, #admin-page .admin-content { width: 100%; max-width: 900px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+#admin-page .admin-content { padding-bottom: 60px; }
+#admin-page .admin-header > h2 { margin: 16px 0 8px; font-size: clamp(1.7rem, 4vw, 2.3rem); }
 
 .search-page {
     display: flex;
@@ -1090,20 +1096,20 @@ html:has(body.posts-page) {
         gap: 6px;
     }
 
-    body.admin-page .admin-form-grid {
+    :is(body.admin-page, #admin-page) .admin-form-grid {
         grid-template-columns: 1fr;
     }
 
-    body.admin-page .pat-controls {
+    :is(body.admin-page, #admin-page) .pat-controls {
         flex-direction: column;
         align-items: stretch;
     }
 
-    body.admin-page .pat-input-wrapper {
+    :is(body.admin-page, #admin-page) .pat-input-wrapper {
         min-width: unset;
     }
 
-    body.admin-page .table-wrapper {
+    :is(body.admin-page, #admin-page) .table-wrapper {
         max-height: 320px;
     }
 }
@@ -1138,14 +1144,14 @@ html:has(body.posts-page) {
 
 /* 详情页 / 管理页基础布局 */
 body.post-page,
-body.admin-page {
+:is(body.admin-page, #admin-page) {
     display: block;
 }
 
 body.post-page header,
 body.post-page main,
-body.admin-page header,
-body.admin-page main {
+:is(body.admin-page, #admin-page) header,
+:is(body.admin-page, #admin-page) main {
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
@@ -1156,7 +1162,7 @@ body.post-page header {
     padding-top: 90px;
 }
 
-body.admin-page header {
+:is(body.admin-page, #admin-page) header {
     padding-top: 90px;
 }
 
@@ -1167,7 +1173,7 @@ body.post-page #navigation {
 }
 
 body.post-page main,
-body.admin-page main {
+:is(body.admin-page, #admin-page) main {
     padding-bottom: 60px;
 }
 
@@ -1194,21 +1200,21 @@ body.post-page #navigation a {
     text-decoration: none;
 }
 
-body.admin-page .admin-header {
+:is(body.admin-page, #admin-page) .admin-header {
     padding-top: clamp(32px, 6vw, 64px);
 }
 
-body.admin-page .admin-header h1 {
+:is(body.admin-page, #admin-page) .admin-header h1 {
     margin: 0 0 8px;
     font-size: clamp(1.7rem, 4vw, 2.3rem);
 }
 
-body.admin-page .admin-header > p {
+:is(body.admin-page, #admin-page) .admin-header > p {
     margin: 0 0 28px;
     color: var(--secondary-text);
 }
 
-body.admin-page .admin-panel {
+:is(body.admin-page, #admin-page) .admin-panel {
     margin-bottom: 20px;
     padding: clamp(18px, 3vw, 28px);
     border: 1px solid var(--border-color);
@@ -1217,7 +1223,7 @@ body.admin-page .admin-panel {
     box-shadow: 0 4px 16px var(--shadow-light);
 }
 
-body.admin-page .admin-panel-heading {
+:is(body.admin-page, #admin-page) .admin-panel-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1225,27 +1231,27 @@ body.admin-page .admin-panel-heading {
     margin-bottom: 20px;
 }
 
-body.admin-page .admin-panel h2 {
+:is(body.admin-page, #admin-page) .admin-panel h2 {
     margin: 0;
     font-size: 1.15rem;
 }
 
-body.admin-page .meta,
-body.admin-page .admin-note {
+:is(body.admin-page, #admin-page) .meta,
+:is(body.admin-page, #admin-page) .admin-note {
     color: var(--secondary-text);
     font-size: 0.875rem;
 }
 
-body.admin-page .admin-panel-heading .meta {
+:is(body.admin-page, #admin-page) .admin-panel-heading .meta {
     margin: 8px 0 0;
 }
 
-body.admin-page .admin-note {
+:is(body.admin-page, #admin-page) .admin-note {
     margin: 12px 0 0;
     line-height: 1.5;
 }
 
-body.admin-page button:not(.pat-toggle) {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle) {
     padding: 9px 15px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1256,31 +1262,31 @@ body.admin-page button:not(.pat-toggle) {
     transition: background-color 0.2s, border-color 0.2s;
 }
 
-body.admin-page button:not(.pat-toggle):hover:not(:disabled) {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle):hover:not(:disabled) {
     border-color: var(--secondary-text);
 }
 
-body.admin-page button:not(.pat-toggle):disabled {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle):disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-body.admin-page button.admin-primary {
+:is(body.admin-page, #admin-page) button.admin-primary {
     background: var(--text-color);
     border-color: var(--text-color);
     color: var(--bg-color);
     font-weight: 600;
 }
 
-body.admin-page button.admin-primary:hover:not(:disabled) {
+:is(body.admin-page, #admin-page) button.admin-primary:hover:not(:disabled) {
     opacity: 0.85;
 }
 
-body.admin-page button[data-act="del"] {
+:is(body.admin-page, #admin-page) button[data-act="del"] {
     color: #ff9b95;
 }
 
-body.admin-page .admin-form-grid label {
+:is(body.admin-page, #admin-page) .admin-form-grid label {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1288,23 +1294,23 @@ body.admin-page .admin-form-grid label {
     font-size: 0.9rem;
 }
 
-body.admin-page .admin-form-grid {
+:is(body.admin-page, #admin-page) .admin-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
 @media (max-width: 768px) {
-    body.admin-page .admin-form-grid {
+    :is(body.admin-page, #admin-page) .admin-form-grid {
         grid-template-columns: 1fr;
     }
 }
 
-body.admin-page .admin-col-span {
+:is(body.admin-page, #admin-page) .admin-col-span {
     grid-column: 1 / -1;
 }
 
-body.admin-page .admin-form-hint {
+:is(body.admin-page, #admin-page) .admin-form-hint {
     display: block;
     font-size: 12px;
     color: var(--text-color);
@@ -1313,7 +1319,7 @@ body.admin-page .admin-form-hint {
     line-height: 1.4;
 }
 
-body.admin-page .table-wrapper {
+:is(body.admin-page, #admin-page) .table-wrapper {
     max-height: 480px;
     overflow-y: auto;
     overflow-x: auto;
@@ -1321,38 +1327,38 @@ body.admin-page .table-wrapper {
     border-radius: 6px;
 }
 
-body.admin-page .table-wrapper .table {
+:is(body.admin-page, #admin-page) .table-wrapper .table {
     margin: 0;
     white-space: nowrap;
     min-width: 720px;
 }
 
-body.admin-page .table-wrapper .table thead th {
+:is(body.admin-page, #admin-page) .table-wrapper .table thead th {
     position: sticky;
     top: 0;
     z-index: 1;
 }
 
-body.admin-page .table {
+:is(body.admin-page, #admin-page) .table {
     width: 100%;
     border-collapse: collapse;
     background: var(--card-bg);
 }
 
-body.admin-page .table th,
-body.admin-page .table td {
+:is(body.admin-page, #admin-page) .table th,
+:is(body.admin-page, #admin-page) .table td {
     border: 1px solid var(--border-color);
     padding: 8px 10px;
     text-align: left;
     vertical-align: top;
 }
 
-body.admin-page .table th {
+:is(body.admin-page, #admin-page) .table th {
     background: var(--search-bg);
 }
 
-body.admin-page .table .empty-row td,
-body.admin-page .table .loading-row td {
+:is(body.admin-page, #admin-page) .table .empty-row td,
+:is(body.admin-page, #admin-page) .table .loading-row td {
     text-align: center;
     padding: 40px 20px;
     color: var(--text-color);
@@ -1360,17 +1366,17 @@ body.admin-page .table .loading-row td {
     font-size: 14px;
 }
 
-body.admin-page .table .loading-row td {
+:is(body.admin-page, #admin-page) .table .loading-row td {
     opacity: 0.8;
 }
 
-body.admin-page .table .empty-row td {
+:is(body.admin-page, #admin-page) .table .empty-row td {
     opacity: 0.55;
 }
 
-body.admin-page input,
-body.admin-page select,
-body.admin-page textarea {
+:is(body.admin-page, #admin-page) input,
+:is(body.admin-page, #admin-page) select,
+:is(body.admin-page, #admin-page) textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--border-color);
@@ -1380,46 +1386,46 @@ body.admin-page textarea {
     font: inherit;
 }
 
-body.admin-page textarea {
+:is(body.admin-page, #admin-page) textarea {
     resize: vertical;
     line-height: 1.6;
 }
 
-body.admin-page input::placeholder,
-body.admin-page textarea::placeholder {
+:is(body.admin-page, #admin-page) input::placeholder,
+:is(body.admin-page, #admin-page) textarea::placeholder {
     color: var(--secondary-text);
 }
 
-body.admin-page header .controls input {
+:is(body.admin-page, #admin-page) header .controls input {
     width: 100%;
     min-width: 0;
 }
 
-body.admin-page .pat-input-wrapper {
+:is(body.admin-page, #admin-page) .pat-input-wrapper {
     position: relative;
     display: inline-flex;
     align-items: center;
     min-width: 240px;
 }
 
-body.admin-page .pat-input-wrapper input {
+:is(body.admin-page, #admin-page) .pat-input-wrapper input {
     width: 100%;
     min-width: unset;
     padding-right: 36px;
 }
 
-body.admin-page .pat-input-wrapper input:disabled {
+:is(body.admin-page, #admin-page) .pat-input-wrapper input:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     background: var(--bg-color);
 }
 
-body.admin-page .pat-input-wrapper input:disabled::placeholder {
+:is(body.admin-page, #admin-page) .pat-input-wrapper input:disabled::placeholder {
     color: var(--text-color);
     opacity: 0.5;
 }
 
-body.admin-page .pat-toggle {
+:is(body.admin-page, #admin-page) .pat-toggle {
     position: absolute;
     right: 4px;
     top: 50%;
@@ -1435,23 +1441,23 @@ body.admin-page .pat-toggle {
     transition: opacity 0.2s;
 }
 
-body.admin-page .pat-toggle:hover,
-body.admin-page .pat-toggle:focus-visible {
+:is(body.admin-page, #admin-page) .pat-toggle:hover,
+:is(body.admin-page, #admin-page) .pat-toggle:focus-visible {
     opacity: 1;
 }
 
 @media (max-width: 768px) {
-    body.admin-page .pat-input-wrapper {
+    :is(body.admin-page, #admin-page) .pat-input-wrapper {
         min-width: 0;
         width: 100%;
     }
 
-    body.admin-page .table-wrapper {
+    :is(body.admin-page, #admin-page) .table-wrapper {
         max-height: 320px;
     }
 }
 
-body.admin-page #toast {
+:is(body.admin-page, #admin-page) #toast {
     position: fixed;
     left: 50%;
     top: 30px;
@@ -1478,7 +1484,7 @@ body.posts-page #article-page {
 
 @media (max-width: 768px) {
     body.post-page header,
-    body.admin-page header {
+    :is(body.admin-page, #admin-page) header {
         padding-top: 70px;
     }
 
@@ -1495,7 +1501,7 @@ body.posts-page #article-page {
 }
 
 @media (max-width: 1100px) {
-    body.admin-page .navigation-container {
+    :is(body.admin-page, #admin-page) .navigation-container {
         flex-direction: row;
     }
 }

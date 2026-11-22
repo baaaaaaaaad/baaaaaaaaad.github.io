@@ -144,6 +144,8 @@ function rebuildFilters() {
       opt.value = t; opt.textContent = t;
       sel.appendChild(opt);
     }
+    if (!tagSet.has(state.tag)) state.tag = 'all';
+    sel.value = state.tag;
   }
 }
 
@@ -165,6 +167,13 @@ function applyFilter(animate = false) {
 let listLoadPromise = null;
 let listLoaded = false;
 let listFailed = false;
+let listGeneration = 0;
+
+document.addEventListener('admin-posts-changed', () => {
+  listGeneration++;
+  listLoaded = false;
+  listFailed = false;
+});
 
 function loadPosts() {
   if (listLoaded || listLoadPromise) return listLoadPromise;
@@ -173,12 +182,15 @@ function loadPosts() {
   const list = document.querySelector('#post-list');
   list?.setAttribute('aria-busy', 'true');
   list?.querySelector('.post-list-status')?.classList.add('is-loading');
+  const generation = listGeneration;
   listLoadPromise = Gist.getIndex().then(idx => {
+    if (generation !== listGeneration) return;
     state.all = idx.posts || [];
     listLoaded = true;
     rebuildFilters();
     applyFilter(true);
   }).catch(err => {
+    if (generation !== listGeneration) return;
     listFailed = true;
     renderListStatus(`加载失败：${err.message} `);
     const status = list?.querySelector('.post-list-status');
@@ -192,6 +204,7 @@ function loadPosts() {
   }).finally(() => {
     list?.removeAttribute('aria-busy');
     listLoadPromise = null;
+    if (generation !== listGeneration && document.querySelector('#slide-stage')?.dataset.view === 'article') loadPosts();
   });
   return listLoadPromise;
 }
@@ -584,7 +597,7 @@ function activateAdmin() {
   adminPressTime = now;
   if (adminPressCount === 3) {
     resetAdminPresses();
-    window.location.href = 'admin.html';
+    togglePage('admin-page');
   }
 }
 
@@ -594,7 +607,7 @@ function updateSlideNavigation() {
   if (!nav || !stage) return;
   const hidden = stage.dataset.view !== 'home' || Boolean(document.fullscreenElement);
   if (hidden && nav.contains(document.activeElement)) {
-    document.querySelector(stage.dataset.view === 'home' ? '#main-page' : `#${stage.dataset.view === 'search' ? 'search-page' : 'article-page'}`)?.focus({ preventScroll: true });
+    document.querySelector(stage.dataset.view === 'home' ? '#main-page' : `#${stage.dataset.view}-page`)?.focus({ preventScroll: true });
   }
   nav.hidden = hidden;
   nav.inert = hidden;
@@ -602,11 +615,13 @@ function updateSlideNavigation() {
 
 // 页面切换功能
 function togglePage(pageName, focus = true) {
-  const views = { 'main-page': 'home', 'search-page': 'search', 'article-page': 'article' };
+  const views = { 'main-page': 'home', 'search-page': 'search', 'article-page': 'article', 'admin-page': 'admin' };
   const view = views[pageName];
   if (!view) return;
   if (view === 'article' && !listFailed) loadPosts();
+  if (view === 'admin') import('./admin.js').then(({ initAdmin }) => initAdmin()).catch(err => alert(err.message));
   const stage = document.getElementById('slide-stage');
+  const previousView = stage.dataset.view;
   if (stage.dataset.view !== view) resetAdminPresses();
   stage.dataset.view = view;
   Object.keys(views).forEach(id => {
@@ -616,7 +631,10 @@ function togglePage(pageName, focus = true) {
     page.setAttribute('aria-hidden', String(!active));
   });
   updateSlideNavigation();
-  if (focus) document.getElementById(pageName).focus({ preventScroll: true });
+  if (focus) {
+    const target = view === 'home' && previousView === 'admin' && !document.fullscreenElement ? document.getElementById('admin-toggle') : document.getElementById(pageName);
+    target.focus({ preventScroll: true });
+  }
 }
 
 function setupSlides() {

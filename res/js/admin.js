@@ -173,6 +173,7 @@ async function upsert(isUpdate, oldFilename) {
     }
   });
 
+  document.dispatchEvent(new Event('admin-posts-changed'));
   // 保存后继续编辑同一篇；点击“新建”才会重置
   editingFilename = filename;
   toast('已保存');
@@ -189,6 +190,7 @@ async function del(filename) {
       return index;
     }
   });
+  document.dispatchEvent(new Event('admin-posts-changed'));
   if (editingFilename === filename) editingFilename = null;
   toast('已删除');
   await loadIndex();
@@ -308,11 +310,17 @@ function bindTable() {
   });
 }
 
-async function main() {
-  document.title = `管理 - ${CONFIG.SITE_TITLE}`;
+let initialized = false;
+
+export async function initAdmin() {
+  if (initialized) return;
+  initialized = true;
   bindToolbar();
   bindTable();
   await loadIndex();
 }
 
-main().catch(err => alert(err.message));
+if (document.body.classList.contains('admin-page')) {
+  document.title = `管理 - ${CONFIG.SITE_TITLE}`;
+  initAdmin().catch(err => alert(err.message));
+}
