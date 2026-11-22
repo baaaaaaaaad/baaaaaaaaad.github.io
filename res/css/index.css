@@ -704,6 +704,10 @@ html.theme-transitioning body * {
     gap: 12px;
 }
 
+.slide-navigation[hidden] {
+    display: none;
+}
+
 .slide-navigation button,
 .slide-navigation a {
     border: 1px solid var(--border-color);

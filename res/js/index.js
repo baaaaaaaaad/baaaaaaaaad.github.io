@@ -570,6 +570,36 @@ function init() {
 document.addEventListener('DOMContentLoaded', init);
 
 
+let adminPressCount = 0;
+let adminPressTime = 0;
+
+function resetAdminPresses() {
+  adminPressCount = 0;
+  adminPressTime = 0;
+}
+
+function activateAdmin() {
+  const now = Date.now();
+  adminPressCount = now - adminPressTime <= 2000 ? adminPressCount + 1 : 1;
+  adminPressTime = now;
+  if (adminPressCount === 3) {
+    resetAdminPresses();
+    window.location.href = 'admin.html';
+  }
+}
+
+function updateSlideNavigation() {
+  const nav = document.querySelector('.slide-navigation');
+  const stage = document.querySelector('#slide-stage');
+  if (!nav || !stage) return;
+  const hidden = stage.dataset.view !== 'home' || Boolean(document.fullscreenElement);
+  if (hidden && nav.contains(document.activeElement)) {
+    document.querySelector(stage.dataset.view === 'home' ? '#main-page' : `#${stage.dataset.view === 'search' ? 'search-page' : 'article-page'}`)?.focus({ preventScroll: true });
+  }
+  nav.hidden = hidden;
+  nav.inert = hidden;
+}
+
 // 页面切换功能
 function togglePage(pageName, focus = true) {
   const views = { 'main-page': 'home', 'search-page': 'search', 'article-page': 'article' };
@@ -577,6 +607,7 @@ function togglePage(pageName, focus = true) {
   if (!view) return;
   if (view === 'article' && !listFailed) loadPosts();
   const stage = document.getElementById('slide-stage');
+  if (stage.dataset.view !== view) resetAdminPresses();
   stage.dataset.view = view;
   Object.keys(views).forEach(id => {
     const page = document.getElementById(id);
@@ -584,7 +615,7 @@ function togglePage(pageName, focus = true) {
     page.inert = !active;
     page.setAttribute('aria-hidden', String(!active));
   });
-  document.querySelector('.slide-navigation').inert = view !== 'home';
+  updateSlideNavigation();
   if (focus) document.getElementById(pageName).focus({ preventScroll: true });
 }
 
@@ -605,7 +636,16 @@ function setupSlides() {
     }
   };
   fullscreenButton.addEventListener('click', toggleFullscreen);
-  document.addEventListener('fullscreenchange', updateFullscreenButton);
+  document.querySelector('#admin-toggle')?.addEventListener('click', activateAdmin);
+  window.addEventListener('blur', resetAdminPresses);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) resetAdminPresses();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    resetAdminPresses();
+    updateFullscreenButton();
+    updateSlideNavigation();
+  });
   updateFullscreenButton();
   const pages = { home: 'main-page', search: 'search-page', article: 'article-page' };
   document.querySelectorAll('[data-slide]').forEach(button => {
@@ -623,14 +663,17 @@ function setupSlides() {
     let target;
     if (view === 'home' && event.key === 'ArrowRight') target = 'search';
     if (view === 'home' && event.key === 'ArrowDown') target = 'article';
-    if (view === 'home' && event.key === 'ArrowLeft') target = 'admin';
+    if (view === 'home' && event.key === 'ArrowLeft') {
+      event.preventDefault();
+      if (!event.repeat) activateAdmin();
+      return;
+    }
     if ((view === 'search' && event.key === 'ArrowLeft') ||
         (view === 'article' && event.key === 'ArrowUp' && document.getElementById('article-page').scrollTop <= 0) ||
         (view !== 'home' && event.key === 'Escape')) target = 'home';
     if (!target) return;
     event.preventDefault();
-    if (target === 'admin') window.location.href = 'admin.html';
-    else togglePage(pages[target]);
+    togglePage(pages[target]);
   });
 }
 
