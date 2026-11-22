@@ -73,7 +73,8 @@ async function main() {
     return;
   }
 
-  const idx = await Gist.getIndex();
+  const gist = await Gist.getGist();
+  const idx = await Gist.getIndex(gist);
   const allPosts = idx.posts || [];
   const post = allPosts.find(p => p.slug === slug);
   if (!post) {
@@ -106,7 +107,7 @@ async function main() {
   const descEl = document.querySelector('meta[name="description"]');
   if (descEl) descEl.setAttribute('content', post.summary || CONFIG.SITE_DESC || '');
 
-  const md = await Gist.getPostFile(post.filename);
+  const md = await Gist.getPostFile(post.filename, gist);
   const body = normalizeLeadingTitle(stripFrontMatter(md), title);
   contentEl.innerHTML = DOMPurify.sanitize(marked.parse(body));
   contentEl.removeAttribute('aria-busy');

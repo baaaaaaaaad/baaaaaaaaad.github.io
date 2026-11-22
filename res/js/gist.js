@@ -122,11 +122,11 @@ export const Gist = {
   },
 
   /** 读取 index.json 的内容（优先用 raw_url 减少 API 配额消耗） */
-  async getIndex() {
+  async getIndex(gist = null) {
     if (USE_MOCK_DATA) {
       return MOCK_DATA.index;
     }
-    const gist = await this.getGist();
+    gist = gist || await this.getGist();
     const idx = gist.files['index.json'];
     if (!idx) throw new Error('index.json 不存在，请先在你的 Gist 中创建它');
     const res = await fetch(idx.raw_url);
@@ -135,16 +135,17 @@ export const Gist = {
   },
 
   /** 根据文件名读取 Markdown 原文 */
-  async getPostFile(filename) {
+  async getPostFile(filename, gist = null) {
     if (USE_MOCK_DATA) {
       if (!MOCK_DATA.posts[filename]) {
         throw new Error(`未找到文章文件：${filename}`);
       }
       return MOCK_DATA.posts[filename];
     }
-    const gist = await this.getGist();
+    gist = gist || await this.getGist();
     const f = gist.files[filename];
     if (!f) throw new Error(`未找到文章文件：${filename}`);
+    if (f.truncated === false && typeof f.content === 'string') return f.content;
     return fetchText(f.raw_url);
   },
 
