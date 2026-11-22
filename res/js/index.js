@@ -632,34 +632,6 @@ function setupSlides() {
     if (target === 'admin') window.location.href = 'admin.html';
     else togglePage(pages[target]);
   });
-  let start = null;
-  stage.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || event.target.closest('a, button, input, select, textarea, [draggable="true"]')) return;
-    start = { x: event.clientX, y: event.clientY, id: event.pointerId };
-  });
-  window.addEventListener('pointercancel', () => { start = null; });
-  window.addEventListener('pointerup', event => {
-    if (!start || start.id !== event.pointerId) return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    start = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 80) return;
-    const view = stage.dataset.view;
-    let target;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      if (view === 'home') target = dx > 0 ? 'search' : 'admin';
-      else if (view === 'search' && dx < 0) target = 'home';
-    } else {
-      if (view === 'home' && dy < 0) {
-        toggleFullscreen();
-        return;
-      }
-      if (view === 'home' && dy > 0) target = 'article';
-      else if (view === 'article' && dy < 0 && document.getElementById('article-page').scrollTop === 0) target = 'home';
-    }
-    if (target === 'admin') window.location.href = 'admin.html';
-    else if (target) togglePage(pages[target]);
-  });
 }
 
 // 初始页面加载处理
