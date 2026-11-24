@@ -535,6 +535,24 @@ body.dark-mode .day-progress-fill {
 
 #main-page {
     animation: fadeIn 0.5s ease-in-out;
+    background: radial-gradient(ellipse min(48vw, 460px) 190px at center, rgba(0, 0, 0, 0.68), transparent 100%);
+}
+
+#main-page .clock,
+#main-page .date,
+#main-page .day-progress {
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+
+#main-page .date,
+#main-page .day-progress-text {
+    opacity: 1;
+}
+
+#main-page .day-progress-track {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.4);
 }
 
 /* 页面切换动画 */
