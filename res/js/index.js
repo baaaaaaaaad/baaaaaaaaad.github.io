@@ -7,23 +7,73 @@ const rainAudio = document.querySelector('#rain-audio');
 const rainAudioToggle = document.querySelector('#rain-audio-toggle');
 if (rainAudio && rainAudioToggle) {
   let interacted = false;
+  let playing = false;
+  let generation = 0;
+  let context;
+  let bufferPromise;
+  let source;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const updateAudioButton = () => {
-    const playing = !rainAudio.paused;
     rainAudioToggle.textContent = playing ? '静音' : '播放雨声';
     rainAudioToggle.setAttribute('aria-label', playing ? '静音雨声' : '播放雨声');
     rainAudioToggle.setAttribute('aria-pressed', String(playing));
   };
-  const playRain = () => rainAudio.play().catch(updateAudioButton);
-  rainAudio.addEventListener('play', updateAudioButton);
-  rainAudio.addEventListener('pause', updateAudioButton);
-  rainAudio.addEventListener('error', updateAudioButton);
+  const stopRain = () => {
+    generation++;
+    playing = false;
+    if (source) {
+      source.stop();
+      source.disconnect();
+      source = null;
+    }
+    rainAudio.pause();
+    updateAudioButton();
+  };
+  const playRain = async () => {
+    const current = ++generation;
+    playing = true;
+    updateAudioButton();
+    try {
+      if (!AudioContextClass) {
+        await rainAudio.play();
+      } else {
+        context ||= new AudioContextClass();
+        const resumed = context.resume();
+        bufferPromise ||= fetch(rainAudio.src).then(response => {
+          if (!response.ok) throw new Error('音频加载失败');
+          return response.arrayBuffer();
+        }).then(data => context.decodeAudioData(data)).catch(error => {
+          bufferPromise = null;
+          throw error;
+        });
+        const [buffer] = await Promise.all([bufferPromise, resumed]);
+        if (current !== generation) return;
+        source = context.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.connect(context.destination);
+        source.start();
+      }
+    } catch (error) {
+      if (current === generation) stopRain();
+    }
+  };
   rainAudioToggle.addEventListener('click', () => {
     interacted = true;
-    if (rainAudio.paused) playRain();
-    else rainAudio.pause();
+    if (playing) stopRain();
+    else playRain();
   });
-  if (document.readyState === 'complete') playRain();
-  else window.addEventListener('load', () => { if (!interacted) playRain(); }, { once: true });
+  const tryAutoplay = () => {
+    if (interacted) return;
+    const current = generation;
+    rainAudio.play().then(() => {
+      if (interacted || current !== generation) return;
+      rainAudio.pause();
+      playRain();
+    }).catch(() => {});
+  };
+  if (document.readyState === 'complete') tryAutoplay();
+  else window.addEventListener('load', tryAutoplay, { once: true });
 }
 
 const rainBackground = document.querySelector('#rain-background');
