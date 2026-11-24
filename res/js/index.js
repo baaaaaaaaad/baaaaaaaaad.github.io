@@ -14,7 +14,7 @@ if (rainAudio && rainAudioToggle) {
   let source;
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const updateAudioButton = () => {
-    rainAudioToggle.textContent = playing ? '静音' : '播放雨声';
+    rainAudioToggle.textContent = playing ? '🔇' : '🔊';
     rainAudioToggle.setAttribute('aria-label', playing ? '静音雨声' : '播放雨声');
     rainAudioToggle.setAttribute('aria-pressed', String(playing));
   };
