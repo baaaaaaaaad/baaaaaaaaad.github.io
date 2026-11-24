@@ -770,6 +770,21 @@ html:has(body.posts-page) {
     cursor: not-allowed;
 }
 
+#refresh-posts.is-refreshing > span {
+    display: inline-block;
+    animation: posts-refresh-spin 0.8s linear infinite;
+}
+
+@keyframes posts-refresh-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #refresh-posts.is-refreshing > span {
+        animation: none;
+    }
+}
+
 /* 文章列表样式 */
 #post-list {
     list-style: none;

@@ -257,8 +257,13 @@ function loadPosts(force = false) {
   const list = document.querySelector('#post-list');
   const refresh = document.querySelector('#refresh-posts');
   const status = document.querySelector('#refresh-status');
-  if (refresh) refresh.disabled = true;
-  if (status) status.textContent = hadList ? '正在刷新文章…' : '';
+  const refreshStarted = performance.now();
+  const minimumRefreshDuration = force && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 0;
+  if (refresh) {
+    refresh.disabled = true;
+    refresh.classList.toggle('is-refreshing', force);
+  }
+  if (status) status.textContent = hadList || force ? '正在刷新文章…' : '';
   if (!hadList) {
     renderListStatus('正在加载文章…');
     list?.querySelector('.post-list-status')?.classList.add('is-loading');
@@ -300,9 +305,14 @@ function loadPosts(force = false) {
         message.append(retry);
       }
     }
-  }).finally(() => {
+  }).finally(async () => {
+    const remaining = minimumRefreshDuration - (performance.now() - refreshStarted);
+    if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
     list?.removeAttribute('aria-busy');
-    if (refresh) refresh.disabled = false;
+    if (refresh) {
+      refresh.classList.remove('is-refreshing');
+      refresh.disabled = false;
+    }
     listLoadPromise = null;
     if (generation !== listGeneration && document.querySelector('#slide-stage')?.dataset.view === 'article') loadPosts();
   });
