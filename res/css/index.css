@@ -84,7 +84,7 @@ body {
 }
 
 .background-fallback {
-    background: center / cover no-repeat url('../img/rain.jpg'), linear-gradient(to bottom, rgb(226,184,160) 0%, rgb(222,142,140) 44.4%, rgb(170,124,162) 74%, rgb(28,18,30) 74%);
+    background: center / cover no-repeat url('../img/rain.jpg'), linear-gradient(to bottom, rgb(226, 184, 160) 0%, rgb(222, 142, 140) 44.4%, rgb(170, 124, 162) 74%, rgb(28, 18, 30) 74%);
 }
 
 #rain-background {
@@ -165,19 +165,21 @@ body {
 /* 冒号呼吸 */
 @keyframes colonPulse {
     0%, 100% {
-        opacity: 1;
+        opacity: 0.2;
     }
+
     50% {
-        opacity: 0.55;
+        opacity: 1;
     }
 }
 
-.clock .char-colon {
-    animation: colonPulse 2s ease-in-out infinite;
+.clock .clock-separator {
+    animation: colonPulse 6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .clock .char-colon,
+
+    .clock .clock-separator,
     .clock .char-static {
         animation: none;
     }
@@ -185,9 +187,12 @@ body {
 
 /* 字符跳动动画定义 - 微小跳 */
 @keyframes charJumpTiny {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-4px);
     }
@@ -195,9 +200,12 @@ body {
 
 /* 字符跳动动画定义 - 小跳 */
 @keyframes charJumpSmall {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-10px);
     }
@@ -205,9 +213,12 @@ body {
 
 /* 字符跳动动画定义 - 中跳 */
 @keyframes charJumpMedium {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-16px);
     }
@@ -215,9 +226,12 @@ body {
 
 /* 字符跳动动画定义 - 大跳（分钟个位用） */
 @keyframes charJumpLarge {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-22px);
     }
@@ -225,9 +239,12 @@ body {
 
 /* 字符跳动动画定义 - 特大跳（秒十位用） */
 @keyframes charJumpExtraLarge {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-25px);
     }
@@ -235,9 +252,12 @@ body {
 
 /* 字符跳动动画定义 - 超大跳（秒个位用） */
 @keyframes charJumpXlarge {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-28px);
     }
@@ -358,6 +378,7 @@ body.dark-mode .day-progress-fill {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -635,6 +656,7 @@ html.theme-transitioning body * {
     from {
         clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
     }
+
     to {
         clip-path: circle(150vmax at var(--theme-x, 50%) var(--theme-y, 50%));
     }
@@ -647,7 +669,7 @@ html.theme-transitioning body * {
     z-index: 1;
 }
 
-.slide-stage > .page {
+.slide-stage>.page {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -657,24 +679,70 @@ html.theme-transitioning body * {
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.slide-stage > #main-page,
-.slide-stage > #article-page {
+.slide-stage>#main-page,
+.slide-stage>#article-page {
     animation: none;
 }
 
-.slide-stage > #main-page { transform: translate(0, 0); }
-.slide-stage > #search-page { transform: translateX(-100%); }
-.slide-stage > #article-page { transform: translateY(-100%); }
-.slide-stage[data-view="search"] > #main-page { transform: translateX(100%); }
-.slide-stage[data-view="search"] > #search-page { transform: translateX(0); }
-.slide-stage[data-view="article"] > #main-page { transform: translateY(100%); }
-.slide-stage[data-view="article"] > #article-page { transform: translateY(0); }
-.slide-stage > #admin-page { transform: translateX(100%); overflow-y: auto; background: var(--bg-color); }
-.slide-stage[data-view="admin"] > #main-page { transform: translateX(-100%); }
-.slide-stage[data-view="admin"] > #admin-page { transform: translateX(0); }
-#admin-page .admin-header, #admin-page .admin-content { width: 100%; max-width: 900px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
-#admin-page .admin-content { padding-bottom: 60px; }
-#admin-page .admin-header > h2 { margin: 16px 0 8px; font-size: clamp(1.7rem, 4vw, 2.3rem); }
+.slide-stage>#main-page {
+    transform: translate(0, 0);
+}
+
+.slide-stage>#search-page {
+    transform: translateX(-100%);
+}
+
+.slide-stage>#article-page {
+    transform: translateY(-100%);
+}
+
+.slide-stage[data-view="search"]>#main-page {
+    transform: translateX(100%);
+}
+
+.slide-stage[data-view="search"]>#search-page {
+    transform: translateX(0);
+}
+
+.slide-stage[data-view="article"]>#main-page {
+    transform: translateY(100%);
+}
+
+.slide-stage[data-view="article"]>#article-page {
+    transform: translateY(0);
+}
+
+.slide-stage>#admin-page {
+    transform: translateX(100%);
+    overflow-y: auto;
+    background: var(--bg-color);
+}
+
+.slide-stage[data-view="admin"]>#main-page {
+    transform: translateX(-100%);
+}
+
+.slide-stage[data-view="admin"]>#admin-page {
+    transform: translateX(0);
+}
+
+#admin-page .admin-header,
+#admin-page .admin-content {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#admin-page .admin-content {
+    padding-bottom: 60px;
+}
+
+#admin-page .admin-header>h2 {
+    margin: 16px 0 8px;
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+}
 
 .search-page {
     display: flex;
@@ -713,7 +781,7 @@ html.theme-transitioning body * {
     display: none;
 }
 
-.search-page > .back-home-button {
+.search-page>.back-home-button {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -760,18 +828,19 @@ html.theme-transitioning body * {
     padding: 20px max(24px, calc((100% - 800px) / 2));
 }
 
-.slide-stage > #article-page,
+.slide-stage>#article-page,
 html:has(body.posts-page) {
     scrollbar-width: thin;
 }
 
 @supports not (scrollbar-width: thin) {
-    .slide-stage > #article-page::-webkit-scrollbar,
+
+    .slide-stage>#article-page::-webkit-scrollbar,
     html:has(body.posts-page)::-webkit-scrollbar {
         width: 8px;
     }
 
-    .slide-stage > #article-page::-webkit-scrollbar-thumb,
+    .slide-stage>#article-page::-webkit-scrollbar-thumb,
     html:has(body.posts-page)::-webkit-scrollbar-thumb {
         background: rgba(128, 128, 128, 0.55);
         border-radius: 8px;
@@ -943,6 +1012,7 @@ html:has(body.posts-page) {
         opacity: 0;
         transform: translateY(12px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -983,7 +1053,9 @@ html:has(body.posts-page) {
 }
 
 @keyframes post-loading-spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1136,6 +1208,7 @@ html:has(body.posts-page) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -1230,7 +1303,7 @@ body.post-page #navigation a {
     font-size: clamp(1.7rem, 4vw, 2.3rem);
 }
 
-:is(body.admin-page, #admin-page) .admin-header > p {
+:is(body.admin-page, #admin-page) .admin-header>p {
     margin: 0 0 28px;
     color: var(--secondary-text);
 }
@@ -1504,6 +1577,7 @@ body.posts-page #article-page {
 }
 
 @media (max-width: 768px) {
+
     body.post-page header,
     :is(body.admin-page, #admin-page) header {
         padding-top: 70px;
