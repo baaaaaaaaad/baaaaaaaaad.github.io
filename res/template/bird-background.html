@@ -202,7 +202,6 @@
   });
 
   function isLowEnd() {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
     const mem = navigator.deviceMemory;
     if (typeof mem === 'number' && mem <= 2) return true;
     const cores = navigator.hardwareConcurrency;
@@ -213,7 +212,6 @@
   }
 
   let last = 0, t = 0, frame = 0, ema = 16.7, animation = 0, initialized = false;
-  const motion = matchMedia('(prefers-reduced-motion: reduce)');
   function renderSize() {
     if (!resize()) return;
     if (!initialized) { init(); initialized = true; }
@@ -225,7 +223,6 @@
     if (!isLowEnd() && initialized) animation = requestAnimationFrame(loop);
   }
   addEventListener('resize', () => { renderSize(); if (!animation) updateMotion(); });
-  motion.addEventListener('change', updateMotion);
   renderSize();
   updateMotion();
 

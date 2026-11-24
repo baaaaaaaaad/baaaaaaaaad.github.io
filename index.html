@@ -64,7 +64,7 @@
     <div class="page" id="article-page" tabindex="-1" inert aria-hidden="true">
         <div id="nav-container">
             <nav class="nav-bar" aria-label="文章列表导航">
-                <button id="back-home" class="back-home-button" type="button" aria-label="返回首页" title="返回首页"><span aria-hidden="true">←</span></button>
+                <button id="back-home" class="panel-icon-button" type="button" aria-label="返回首页" title="返回首页"><span aria-hidden="true">←</span></button>
                 <div class="nav-links">
                     <a href="admin.html" class="admin-link">Admin</a>
                 </div>
@@ -74,7 +74,7 @@
             <div class="controls" role="search">
                 <select id="tag" aria-label="按标签筛选文章"></select>
                 <input id="q" type="text" placeholder="搜索标题/标签/摘要" aria-label="搜索文章">
-                <button id="refresh-posts" class="back-home-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button>
+                <button id="refresh-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button>
             </div>
             <div id="refresh-status" class="meta" role="status" aria-live="polite"></div>
         </header>
@@ -90,7 +90,7 @@
 
     <section class="page" id="admin-page" aria-label="文章管理" tabindex="-1" inert aria-hidden="true">
         <header class="admin-header">
-            <button type="button" class="back-home-button" data-slide="home">← 首页</button>
+            <button type="button" class="panel-icon-button" data-slide="home" aria-label="返回首页" title="返回首页"><span aria-hidden="true">←</span></button>
             <h2>文章管理</h2>
             <p>管理 Gist 中的文章与发布状态</p>
             <section class="admin-panel" aria-labelledby="pat-heading">
@@ -104,7 +104,8 @@
         </header>
         <div class="admin-content">
             <section class="admin-panel" aria-labelledby="posts-heading">
-                <div class="admin-panel-heading"><h2 id="posts-heading">文章列表</h2><button id="new" type="button">新建</button></div>
+                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button">新建</button></div>
+                <div id="admin-refresh-status" class="meta" role="status" aria-live="polite"></div>
                 <div class="table-wrapper"><table id="posts" class="table"><thead><tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="posts-body"></tbody></table></div>
             </section>
             <section class="admin-panel" aria-labelledby="editor-heading">

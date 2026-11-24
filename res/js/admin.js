@@ -6,6 +6,7 @@
 // - 删除：从 Gist 删除该 .md，并同步更新 index.json
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
+import { startRefreshFeedback, finishRefreshFeedback } from './refresh-feedback.js';
 
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
@@ -15,6 +16,8 @@ let editingFilename = null;
 
 /** 当前索引中的文章，用于编辑时保留 created_at */
 let currentPosts = [];
+let indexRequestVersion = 0;
+let hasLoadedIndex = false;
 
 /** 简单的消息提示 */
 function toast(msg) {
@@ -35,19 +38,32 @@ function requirePAT() {
 }
 
 /** 拉取 index.json 并渲染到列表表格 */
-async function loadIndex() {
+async function loadIndex(manual = false) {
   const tbody = $('#posts-body');
-  if (tbody) {
+  const refreshButton = $('#refresh-admin-posts');
+  const status = $('#admin-refresh-status');
+  const requestVersion = ++indexRequestVersion;
+  const refreshDeadline = startRefreshFeedback(refreshButton, manual);
+  if (status) status.textContent = '正在刷新文章列表...';
+  if (!hasLoadedIndex && tbody) {
     tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
   }
   try {
     const idx = await Gist.getIndex();
+    if (requestVersion !== indexRequestVersion) return;
     currentPosts = idx.posts || [];
+    hasLoadedIndex = true;
     renderTable(currentPosts);
+    if (status) status.textContent = '';
   } catch (err) {
-    if (tbody) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">加载失败：${err.message || err}</td></tr>`;
+    if (requestVersion !== indexRequestVersion) return;
+    if (!hasLoadedIndex && tbody) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6"></td></tr>';
+      tbody.querySelector('td').textContent = `加载失败：${err.message || err}`;
     }
+    if (status) status.textContent = `加载失败：${err.message || err} 可点击刷新重试。`;
+  } finally {
+    await finishRefreshFeedback(refreshButton, refreshDeadline, () => requestVersion === indexRequestVersion);
   }
 }
 
@@ -199,6 +215,7 @@ function bindToolbar() {
   const patSaveBtn = $('#pat-save');
   const patClearBtn = $('#pat-clear');
   const newBtn = $('#new');
+  const refreshBtn = $('#refresh-admin-posts');
   const saveBtn = $('#save');
   const patInput = $('#pat');
   const patToggle = $('#pat-toggle');
@@ -227,6 +244,8 @@ function bindToolbar() {
   }
 
   syncPatState();
+
+  if (refreshBtn) refreshBtn.addEventListener('click', () => loadIndex(true));
 
   if (patSaveBtn && patInput) {
     patSaveBtn.addEventListener('click', () => {

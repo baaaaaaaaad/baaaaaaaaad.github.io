@@ -33,9 +33,10 @@
 <main>
   <section class="admin-panel" aria-labelledby="posts-heading">
     <div class="admin-panel-heading">
-      <h2 id="posts-heading">文章列表</h2>
+      <div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div>
       <button id="new" type="button">新建</button>
     </div>
+    <div id="admin-refresh-status" class="meta" role="status" aria-live="polite"></div>
     <div class="table-wrapper">
       <table id="posts" class="table">
         <thead>

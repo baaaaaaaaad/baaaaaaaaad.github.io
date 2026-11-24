@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v36';
+const STATIC_CACHE = 'static-v40';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
@@ -11,6 +11,7 @@ const STATIC_ASSETS = [
   'res/css/index.css',
   'res/js/config.js',
   'res/js/gist.js',
+  'res/js/refresh-feedback.js',
   'res/js/index.js',
   'res/js/search.js',
   'res/js/posts.js',

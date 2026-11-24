@@ -2,6 +2,7 @@
 // 详情页与管理页分别由 post.js、admin.js 加载，三者共享 config.js 与 gist.js。
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
+import { startRefreshFeedback, finishRefreshFeedback } from './refresh-feedback.js';
 
 const rainAudio = document.querySelector('#rain-audio');
 const rainAudioToggle = document.querySelector('#rain-audio-toggle');
@@ -77,12 +78,11 @@ if (rainAudio && rainAudioToggle) {
 }
 
 const rainBackground = document.querySelector('#rain-background');
-const backgroundMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 if (rainBackground) {
   let failed = false;
   const updateBackground = () => {
-    if (backgroundMotion.matches || document.hidden || failed) {
+    if (document.hidden || failed) {
       rainBackground.pause();
       rainBackground.classList.remove('is-playing');
       return;
@@ -93,7 +93,7 @@ if (rainBackground) {
     });
   };
   rainBackground.addEventListener('playing', () => {
-    if (!backgroundMotion.matches && !document.hidden && !failed) {
+    if (!document.hidden && !failed) {
       rainBackground.classList.add('is-playing');
     }
   });
@@ -101,7 +101,6 @@ if (rainBackground) {
     failed = true;
     rainBackground.classList.remove('is-playing');
   });
-  backgroundMotion.addEventListener('change', updateBackground);
   document.addEventListener('visibilitychange', updateBackground);
   updateBackground();
 }
@@ -257,12 +256,7 @@ function loadPosts(force = false) {
   const list = document.querySelector('#post-list');
   const refresh = document.querySelector('#refresh-posts');
   const status = document.querySelector('#refresh-status');
-  const refreshStarted = performance.now();
-  const minimumRefreshDuration = force && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 0;
-  if (refresh) {
-    refresh.disabled = true;
-    refresh.classList.toggle('is-refreshing', force);
-  }
+  const refreshDeadline = startRefreshFeedback(refresh, force);
   if (status) status.textContent = hadList || force ? '正在刷新文章…' : '';
   if (!hadList) {
     renderListStatus('正在加载文章…');
@@ -306,13 +300,8 @@ function loadPosts(force = false) {
       }
     }
   }).finally(async () => {
-    const remaining = minimumRefreshDuration - (performance.now() - refreshStarted);
-    if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+    await finishRefreshFeedback(refresh, refreshDeadline);
     list?.removeAttribute('aria-busy');
-    if (refresh) {
-      refresh.classList.remove('is-refreshing');
-      refresh.disabled = false;
-    }
     listLoadPromise = null;
     if (generation !== listGeneration && document.querySelector('#slide-stage')?.dataset.view === 'article') loadPosts();
   });
@@ -427,14 +416,13 @@ function updateClock() {
       : `<span class="clock-digit"><span class="clock-number">${char}</span></span>`
     ).join('');
   } else {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     [...clockEl.children].forEach((digit, index) => {
       const char = timeStr[index];
       if (char === ':' || char === prevTimeStr[index]) return;
       const previous = digit.lastElementChild;
       previous.getAnimations().forEach(animation => animation.cancel());
       digit.replaceChildren(previous);
-      if (reducedMotion || document.hidden) {
+      if (document.hidden) {
         previous.textContent = char;
         return;
       }
@@ -505,14 +493,6 @@ function updateDayProgress(date) {
  */
 function initClock() {
   updateClock();  // 立即更新一次
-  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
-    if (!event.matches) return;
-    document.querySelectorAll('#clock .clock-digit').forEach(digit => {
-      const current = digit.lastElementChild;
-      digit.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
-      if (current) digit.replaceChildren(current);
-    });
-  });
   setInterval(updateClock, 1000);  // 设置每秒更新
 }
 

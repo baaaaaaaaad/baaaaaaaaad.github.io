@@ -96,12 +96,6 @@ body {
     visibility: visible;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    #rain-background.is-playing {
-        visibility: hidden;
-    }
-}
-
 /* 主页内容容器 */
 .content-container {
     display: flex;
@@ -169,13 +163,6 @@ body {
 
 .clock .clock-separator {
     animation: colonPulse 6s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .clock .clock-separator {
-        animation: none;
-    }
 }
 
 /* 日期样式 */
@@ -609,7 +596,8 @@ html.theme-transitioning body * {
     padding: 40px;
 }
 
-.slide-stage .back-home-button {
+.slide-stage .back-home-button,
+.panel-icon-button {
     display: inline-flex;
     align-items: center;
     border: 0;
@@ -622,8 +610,21 @@ html.theme-transitioning body * {
     cursor: pointer;
 }
 
-.slide-stage .back-home-button:hover:not(:disabled) {
+.slide-stage .back-home-button:hover:not(:disabled),
+.panel-icon-button:hover:not(:disabled) {
     background: var(--search-bg);
+}
+
+.panel-icon-button {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.25rem;
+}
+
+.panel-icon-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .slide-stage .nav-bar {
@@ -757,32 +758,13 @@ html:has(body.posts-page) {
     min-width: 200px;
 }
 
-#article-page #back-home,
-#article-page #refresh-posts {
-    justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-    font-size: 1.25rem;
-}
-
-#refresh-posts:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#refresh-posts.is-refreshing > span {
+.panel-icon-button.is-refreshing > span {
     display: inline-block;
     animation: posts-refresh-spin 0.8s linear infinite;
 }
 
 @keyframes posts-refresh-spin {
     to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #refresh-posts.is-refreshing > span {
-        animation: none;
-    }
 }
 
 /* 文章列表样式 */
@@ -952,12 +934,6 @@ html:has(body.posts-page) {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    #post-list .post-list-status.is-loading::before {
-        animation: none;
-    }
-}
-
 /* 分页控制 */
 #prev,
 #next {
@@ -1099,26 +1075,6 @@ html:has(body.posts-page) {
 
 }
 
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-
-    ::view-transition-new(root) {
-        animation: none;
-    }
-
-    .search-bar:focus-within {
-        transform: none;
-    }
-}
-
 /* 错误提示样式 */
 .error {
     color: #e74c3c;
@@ -1237,7 +1193,7 @@ body.post-page #navigation a {
     line-height: 1.5;
 }
 
-:is(body.admin-page, #admin-page) button:not(.pat-toggle) {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle, .panel-icon-button) {
     padding: 9px 15px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1248,13 +1204,23 @@ body.post-page #navigation a {
     transition: background-color 0.2s, border-color 0.2s;
 }
 
-:is(body.admin-page, #admin-page) button:not(.pat-toggle):hover:not(:disabled) {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle, .panel-icon-button):hover:not(:disabled) {
     border-color: var(--secondary-text);
 }
 
-:is(body.admin-page, #admin-page) button:not(.pat-toggle):disabled {
+:is(body.admin-page, #admin-page) button:not(.pat-toggle, .panel-icon-button):disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+:is(body.admin-page, #admin-page) .admin-list-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+:is(body.admin-page, #admin-page) .panel-icon-button {
+    transition: background-color 0.2s;
 }
 
 :is(body.admin-page, #admin-page) button.admin-primary {

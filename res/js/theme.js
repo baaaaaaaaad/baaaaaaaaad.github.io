@@ -13,8 +13,7 @@ export function applyTheme(theme, persist) {
 }
 
 export function setTheme(theme, persist = true, origin = null) {
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!origin || prefersReducedMotion || typeof document.startViewTransition !== 'function') {
+  if (!origin || typeof document.startViewTransition !== 'function') {
     applyTheme(theme, persist);
     return;
   }
