@@ -622,7 +622,7 @@ html.theme-transitioning body * {
     cursor: pointer;
 }
 
-.slide-stage .back-home-button:hover {
+.slide-stage .back-home-button:hover:not(:disabled) {
     background: var(--search-bg);
 }
 
@@ -755,6 +755,19 @@ html:has(body.posts-page) {
 #q {
     flex: 1;
     min-width: 200px;
+}
+
+#article-page #back-home,
+#article-page #refresh-posts {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.25rem;
+}
+
+#refresh-posts:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* 文章列表样式 */
