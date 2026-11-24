@@ -3,6 +3,29 @@
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 
+const rainAudio = document.querySelector('#rain-audio');
+const rainAudioToggle = document.querySelector('#rain-audio-toggle');
+if (rainAudio && rainAudioToggle) {
+  let interacted = false;
+  const updateAudioButton = () => {
+    const playing = !rainAudio.paused;
+    rainAudioToggle.textContent = playing ? '静音' : '播放雨声';
+    rainAudioToggle.setAttribute('aria-label', playing ? '静音雨声' : '播放雨声');
+    rainAudioToggle.setAttribute('aria-pressed', String(playing));
+  };
+  const playRain = () => rainAudio.play().catch(updateAudioButton);
+  rainAudio.addEventListener('play', updateAudioButton);
+  rainAudio.addEventListener('pause', updateAudioButton);
+  rainAudio.addEventListener('error', updateAudioButton);
+  rainAudioToggle.addEventListener('click', () => {
+    interacted = true;
+    if (rainAudio.paused) playRain();
+    else rainAudio.pause();
+  });
+  if (document.readyState === 'complete') playRain();
+  else window.addEventListener('load', () => { if (!interacted) playRain(); }, { once: true });
+}
+
 const rainBackground = document.querySelector('#rain-background');
 const backgroundMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 

@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v23';
+const STATIC_CACHE = 'static-v25';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
@@ -70,7 +70,7 @@ self.addEventListener('fetch', (event) => {
 
   if (url.hostname !== location.hostname) return;
 
-  if (url.pathname.endsWith('/rain.mp4')) return;
+  if (url.pathname.endsWith('/rain.mp4') || url.pathname.endsWith('/rain.mp3')) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(

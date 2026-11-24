@@ -707,6 +707,9 @@ html.theme-transitioning body * {
     bottom: 24px;
     z-index: 2;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: calc(100vw - 48px);
     gap: 12px;
 }
 
