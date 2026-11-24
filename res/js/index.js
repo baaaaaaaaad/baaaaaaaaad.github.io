@@ -223,7 +223,7 @@ function rebuildFilters() {
 }
 
 /** 应用当前筛选条件（标签 + 关键词），并按创建时间倒序排序 */
-function applyFilter(animate = false) {
+function applyFilter(animate = false, preservePage = false) {
   const { tag, q } = state;
   state.filtered = state.all.filter(p => {
     if (p.status !== 'published') return false; // 仅展示已发布
@@ -233,12 +233,13 @@ function applyFilter(animate = false) {
     return okTag && okQ;
   }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  state.page = 1;
+  state.page = preservePage ? Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE))) : 1;
   renderList(animate);
 }
 
 let listLoadPromise = null;
 let listLoaded = false;
+let listRendered = false;
 let listFailed = false;
 let listGeneration = 0;
 
@@ -248,34 +249,60 @@ document.addEventListener('admin-posts-changed', () => {
   listFailed = false;
 });
 
-function loadPosts() {
-  if (listLoaded || listLoadPromise) return listLoadPromise;
+function loadPosts(force = false) {
+  if (listLoadPromise) return listLoadPromise;
+  if (listLoaded && !force) return null;
   listFailed = false;
-  renderListStatus('正在加载文章…');
+  const hadList = listRendered;
   const list = document.querySelector('#post-list');
+  const refresh = document.querySelector('#refresh-posts');
+  const status = document.querySelector('#refresh-status');
+  if (refresh) refresh.disabled = true;
+  if (status) status.textContent = hadList ? '正在刷新文章…' : '';
+  if (!hadList) {
+    renderListStatus('正在加载文章…');
+    list?.querySelector('.post-list-status')?.classList.add('is-loading');
+  }
   list?.setAttribute('aria-busy', 'true');
-  list?.querySelector('.post-list-status')?.classList.add('is-loading');
   const generation = listGeneration;
-  listLoadPromise = Gist.getIndex().then(idx => {
+  listLoadPromise = Promise.resolve().then(() => Gist.getIndex()).then(idx => {
     if (generation !== listGeneration) return;
-    state.all = idx.posts || [];
+    const previous = { ...state };
+    try {
+      state.all = idx.posts || [];
+      rebuildFilters();
+      applyFilter(!hadList, hadList);
+    } catch (error) {
+      Object.assign(state, previous);
+      if (hadList) {
+        rebuildFilters();
+        renderList();
+      }
+      throw error;
+    }
     listLoaded = true;
-    rebuildFilters();
-    applyFilter(true);
+    listRendered = true;
+    if (status) status.textContent = hadList ? '文章已刷新' : '';
   }).catch(err => {
     if (generation !== listGeneration) return;
     listFailed = true;
-    renderListStatus(`加载失败：${err.message} `);
-    const status = list?.querySelector('.post-list-status');
-    if (status) {
-      const retry = document.createElement('button');
-      retry.type = 'button';
-      retry.textContent = '重试';
-      retry.addEventListener('click', loadPosts);
-      status.append(retry);
+    if (hadList) {
+      if (status) status.textContent = `刷新失败：${err.message}，请点击刷新重试`;
+    } else {
+      listLoaded = false;
+      renderListStatus(`加载失败：${err.message} `);
+      const message = list?.querySelector('.post-list-status');
+      if (message) {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.textContent = '重试';
+        retry.addEventListener('click', () => loadPosts());
+        message.append(retry);
+      }
     }
   }).finally(() => {
     list?.removeAttribute('aria-busy');
+    if (refresh) refresh.disabled = false;
     listLoadPromise = null;
     if (generation !== listGeneration && document.querySelector('#slide-stage')?.dataset.view === 'article') loadPosts();
   });
@@ -298,6 +325,7 @@ async function main() {
   document.querySelector('#post-list .post-list-status')?.classList.add('is-loading');
 
   // 绑定交互
+  document.querySelector('#refresh-posts')?.addEventListener('click', () => loadPosts(true));
   const tagEl = document.querySelector('#tag');
   if (tagEl) {
     tagEl.addEventListener('change', e => {
@@ -710,15 +738,15 @@ function setupSlides() {
     fullscreenButton.setAttribute('aria-pressed', String(active));
     fullscreenButton.setAttribute('aria-label', active ? '退出全屏' : '进入全屏');
   };
-  const toggleFullscreen = async () => {
+  const enterFullscreen = async () => {
+    if (document.fullscreenElement || !document.documentElement.requestFullscreen) return;
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      await document.documentElement.requestFullscreen();
     } catch (error) {
-      console.warn('无法切换全屏模式', error);
+      console.warn('无法进入全屏模式', error);
     }
   };
-  fullscreenButton.addEventListener('click', toggleFullscreen);
+  fullscreenButton.addEventListener('click', enterFullscreen);
   document.querySelector('#admin-toggle')?.addEventListener('click', activateAdmin);
   window.addEventListener('blur', resetAdminPresses);
   document.addEventListener('visibilitychange', () => {
@@ -740,7 +768,7 @@ function setupSlides() {
     const view = stage.dataset.view;
     if (view === 'home' && event.key === 'ArrowUp') {
       event.preventDefault();
-      toggleFullscreen();
+      enterFullscreen();
       return;
     }
     let target;
