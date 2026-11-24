@@ -156,12 +156,6 @@ body {
     line-height: 1em;
 }
 
-/* 时钟字符样式 */
-.clock .char {
-    display: inline-block;
-    position: relative;
-}
-
 /* 冒号呼吸 */
 @keyframes colonPulse {
     0%, 100% {
@@ -179,118 +173,9 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
 
-    .clock .clock-separator,
-    .clock .char-static {
+    .clock .clock-separator {
         animation: none;
     }
-}
-
-/* 字符跳动动画定义 - 微小跳 */
-@keyframes charJumpTiny {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-4px);
-    }
-}
-
-/* 字符跳动动画定义 - 小跳 */
-@keyframes charJumpSmall {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-/* 字符跳动动画定义 - 中跳 */
-@keyframes charJumpMedium {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-16px);
-    }
-}
-
-/* 字符跳动动画定义 - 大跳（分钟个位用） */
-@keyframes charJumpLarge {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-22px);
-    }
-}
-
-/* 字符跳动动画定义 - 特大跳（秒十位用） */
-@keyframes charJumpExtraLarge {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-25px);
-    }
-}
-
-/* 字符跳动动画定义 - 超大跳（秒个位用） */
-@keyframes charJumpXlarge {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-28px);
-    }
-}
-
-/* 微小跳动画 */
-.char-jump-tiny {
-    animation: charJumpTiny 0.6s ease-in-out;
-}
-
-/* 小跳动画 */
-.char-jump-small {
-    animation: charJumpSmall 0.6s ease-in-out;
-}
-
-/* 中跳动画 */
-.char-jump-medium {
-    animation: charJumpMedium 0.6s ease-in-out;
-}
-
-/* 大跳动画（分钟个位用） */
-.char-jump-large {
-    animation: charJumpLarge 0.6s ease-in-out;
-}
-
-/* 特大跳动画（秒十位用） */
-.char-jump-extralarge {
-    animation: charJumpExtraLarge 0.6s ease-in-out;
-}
-
-/* 超大跳动画（秒个位用） */
-.char-jump-xlarge {
-    animation: charJumpXlarge 0.6s ease-in-out;
 }
 
 /* 日期样式 */
@@ -586,33 +471,6 @@ body.dark-mode .day-progress-fill {
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
-
-/* 按钮动画 */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.15);
-    }
-
-    100% {
-        transform: scale(1);
     }
 }
 
@@ -1205,9 +1063,6 @@ html:has(body.posts-page) {
         min-width: unset;
     }
 
-    :is(body.admin-page, #admin-page) .table-wrapper {
-        max-height: 320px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

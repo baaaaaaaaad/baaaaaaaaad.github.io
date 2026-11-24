@@ -293,14 +293,6 @@ async function main() {
 
   // 基本站点信息
   document.title = `${CONFIG.SITE_TITLE}`;
-  const siteTitleEl = document.querySelector('#site-title');
-  if (siteTitleEl) {
-    siteTitleEl.textContent = CONFIG.SITE_TITLE;
-  }
-  const siteDescEl = document.querySelector('#site-desc');
-  if (siteDescEl) {
-    siteDescEl.textContent = CONFIG.SITE_DESC;
-  }
 
   renderListStatus('正在加载文章…');
   document.querySelector('#post-list .post-list-status')?.classList.add('is-loading');
@@ -772,33 +764,7 @@ function setupSlides() {
 document.addEventListener('DOMContentLoaded', () => {
   setupSlides();
 
-  // 检查URL参数是否包含slug
-  const urlParams = new URLSearchParams(window.location.search);
-  const slug = urlParams.get('slug');
-  const postPage = document.getElementById('post-page');
-
-  if (slug && postPage) {
-    // 如果有slug参数，显示文章详情页面
-    togglePage('post-page');
-
-    // 更新按钮状态
-    const buttons = document.querySelectorAll('.nav-button');
-    buttons.forEach(button => {
-      button.classList.remove('active');
-    });
-  } else {
-    // 否则默认显示主页
-    togglePage('main-page', false);
-  }
-
-  // 导航按钮事件监听
-  const buttons = document.querySelectorAll('.nav-button');
-  buttons.forEach(button => {
-    button.addEventListener('click', () => {
-      const pageName = button.getAttribute('data-page');
-      togglePage(pageName);
-    });
-  });
+  togglePage('main-page', false);
 
   // 搜索图标点击事件监听
   const searchIcons = document.querySelectorAll('.search-engine-icon');
@@ -818,24 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// 导航图标点击动画效果
 document.addEventListener('DOMContentLoaded', () => {
-  const navIcons = document.querySelectorAll('.nav-button');
-  if (navIcons.length) {
-    navIcons.forEach(icon => {
-      icon.addEventListener('click', function() {
-        // 添加点击动画类
-        this.classList.add('nav-button-clicked');
-
-        // 动画结束后移除动画类
-        this.addEventListener('animationend', function handler() {
-          this.classList.remove('nav-button-clicked');
-          this.removeEventListener('animationend', handler);
-        });
-      });
-    });
-  }
-
   // 文章列表内的“返回首页”按钮
   const backHome = document.getElementById('back-home');
   if (backHome) {

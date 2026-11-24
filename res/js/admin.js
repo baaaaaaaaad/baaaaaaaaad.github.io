@@ -6,8 +6,6 @@
 // - 删除：从 Gist 删除该 .md，并同步更新 index.json
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
-import { setupThemeToggle } from './theme.js';
-import { renderNav } from './nav.js';
 
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
