@@ -294,6 +294,10 @@ function bindToolbar() {
     // 只保留一个监听器，避免编辑后又触发新建逻辑
     saveBtn.addEventListener('click', () => upsert(Boolean(editingFilename), editingFilename));
   }
+  const saveBottomBtn = $('#save-bottom');
+  if (saveBottomBtn) {
+    saveBottomBtn.addEventListener('click', () => upsert(Boolean(editingFilename), editingFilename));
+  }
 }
 
 /**
@@ -317,6 +321,10 @@ function bindTable() {
       const fmStripped = md.replace(/^---[\s\S]*?---\n?/, '');
       setForm({ ...post, body: fmStripped }, filename);
       editingFilename = filename;
+      // 编辑后滚动到顶部并聚焦标题输入框
+      const adminPage = document.getElementById('admin-page');
+      adminPage?.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('title')?.focus();
     }
 
     if (act === 'del') {

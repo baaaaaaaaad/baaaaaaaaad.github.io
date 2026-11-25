@@ -1298,10 +1298,23 @@ body.post-page #navigation a {
     min-width: 720px;
 }
 
+:is(body.admin-page, #admin-page) .table-wrapper .table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
 :is(body.admin-page, #admin-page) .table-wrapper .table thead th {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 3;
+    background: var(--search-bg);
+}
+
+:is(body.admin-page, #admin-page) .admin-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
 }
 
 :is(body.admin-page, #admin-page) .table {
@@ -1423,7 +1436,7 @@ body.post-page #navigation a {
 }
 
 :is(body.admin-page, #admin-page) #toast {
-    position: fixed;
+    position: absolute;
     left: 50%;
     top: 30px;
     transform: translateX(-50%);

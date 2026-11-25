@@ -267,6 +267,7 @@ npx --yes serve .
 - `res/js/index.js` 是 ES Module，顶层函数不会挂到 `window`；不要在 HTML 里用 `onclick="..."` 之类的内联写法，统一用 `addEventListener` 绑定。
 - 首页文章、搜索和管理入口切换同页的面板；`togglePage` 维护视图、焦点与无障碍状态，不要误改为独立页面跳转。管理面板复用 `admin.js` 的 `initAdmin()`，其初始化守卫避免重复绑定。
 - 管理页保存依赖模块变量 `editingFilename`：`null` 表示新建，非空表示更新。不要再给 `#save` 额外设置 `onclick`，否则会重复写入。
+- 点击文章列表「编辑」后自动滚动到编辑器顶部并聚焦标题输入框；编辑器底部增加重复保存按钮。Toast 改为绝对定位（相对于管理页容器），避免移动端软键盘遮挡。表格表头使用 sticky 定位，滚动时保持列名可见。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
 - 详情页通过 `res/js/nav.js` 的 `renderNav(page)` 渲染到 `#site-nav`；必须先渲染再初始化主题按钮。首页不调用共享导航。
