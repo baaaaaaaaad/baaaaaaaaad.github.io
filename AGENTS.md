@@ -106,7 +106,7 @@ npx --yes serve .
 页面加载关系：
 
 - `index.html`：`res/css/index.css` + `type="module"` 的 `res/js/index.js` + `res/js/sw-register.js`（defer）；使用首页自身的面板导航，不初始化共享导航。首次进入管理面板时动态导入 `admin.js` 并调用 `initAdmin()`，后续进入不重复绑定或重新加载管理表格。
-- `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。`post.js` 导入 `nav.js` 渲染 floating 导航（主题切换 + 返回首页），并在 `DOMContentLoaded` 后从 `theme.js` 初始化主题。
+- `post.html`：`res/css/index.css` + 本地 `res/js/vendor/marked.min.js` / `purify.min.js`（UMD，暴露全局 `marked` / `DOMPurify`）+ `type="module"` 的 `res/js/post.js` + `res/js/sw-register.js`（defer）。`post.js` 导入 `nav.js` 渲染 floating 导航（主题切换），左上角返回按钮独立处理返回上一页，并在 `DOMContentLoaded` 后从 `theme.js` 初始化主题。
 
 不要再引用 `js/`、`css/` 或 `res/js/merged.js`，这些旧路径已经不存在。不要改回 CDN 加载 marked / DOMPurify。
 
@@ -270,7 +270,7 @@ npx --yes serve .
 - 点击文章列表「编辑」后自动滚动到编辑器顶部并聚焦标题输入框；编辑器底部增加重复保存按钮。Toast 改为绝对定位（相对于管理页容器），避免移动端软键盘遮挡。表格表头使用 sticky 定位，滚动时保持列名可见。
 - 管理页更新文章时会从 `currentPosts` 保留 `created_at`；不要退回为每次保存都使用当前时间。
 - `post.html` 依赖本地 UMD 构建的 `marked` 与 `DOMPurify`（`res/js/vendor/`），渲染必须经过 `DOMPurify.sanitize`，不要绕过。`post.js` 已对 `typeof marked` / `typeof DOMPurify` 缺失给出明确提示。不要改回 CDN 引用。
-- 详情页通过 `res/js/nav.js` 的 `renderNav(page)` 渲染到 `#site-nav`；必须先渲染再初始化主题按钮。首页不调用共享导航。详情页导航的返回首页按钮使用左箭头 SVG 图标；主题切换按钮内 🌞/🌙 两个图标按当前主题切换显示（暗色显月亮、亮色显太阳），由 `body.dark-mode` 与 CSS 控制，不在 JS 中切换。
+- 详情页通过 `res/js/nav.js` 的 `renderNav(page)` 渲染到 `#site-nav`；必须先渲染再初始化主题按钮。首页不调用共享导航。主题切换按钮内 🌞/🌙 两个图标按当前主题切换显示（暗色显月亮、亮色显太阳），由 `body.dark-mode` 与 CSS 控制，不在 JS 中切换。左上角返回按钮使用 ⬅️ 图标：站内来源（`document.referrer` 同源）走 `history.back()` 返回上一页，否则回 `index.html`。
 - 共享导航样式支持横排与响应式纵排；详情页窄屏回退横排。
 - 详情页上一篇/下一篇使用「已发布 + `created_at` 升序」列表定位，不要退回为直接取 `index.json` 原始数组的 `±1`，否则草稿和手动排序会污染导航。
 - 详情页渲染前会处理正文开头的 H1：与标题重复时移除，否则降级为 H2（`post.js` 的 `normalizeLeadingTitle`），避免一页出现两个 H1；正文其他位置的 H1 样式按 `article h1` 收敛。

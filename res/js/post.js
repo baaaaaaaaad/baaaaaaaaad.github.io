@@ -10,6 +10,21 @@ import { renderNav } from './nav.js';
 
 renderNav('post');
 
+/** 返回上一页：站内来源使用浏览器历史，否则回首页 */
+function setupBackButton() {
+  const btn = document.querySelector('#back-button');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+      history.back();
+    } else {
+      location.href = 'index.html';
+    }
+  });
+}
+
+setupBackButton();
+
 /** 读取 URL 查询参数 */
 function getQuery(name) {
   const u = new URL(location.href);

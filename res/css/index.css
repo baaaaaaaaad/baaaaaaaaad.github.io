@@ -1123,6 +1123,30 @@ body.post-page,
     display: block;
 }
 
+/* 详情页返回上一页按钮：固定在左上角 */
+body.post-page .back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+body.post-page .back-button:hover {
+    background: var(--search-bg);
+}
+
 /* 详情页复用首页静态雨景背景：仅暗色主题显示，亮色下移除避免与主题冲突 */
 body.post-page .background-fallback {
     display: none;

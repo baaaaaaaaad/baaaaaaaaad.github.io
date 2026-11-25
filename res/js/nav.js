@@ -1,16 +1,6 @@
 // 全站共享导航渲染器：详情页使用 floating 图标导航。
-const ICONS = {
-  back: `<svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-    <path fill="currentColor" d="M20 11v2H8l5.5 5.5-1.4 1.4L4.2 12l7.9-7.9 1.4 1.4L8 11h12Z"/>
-  </svg>`
-};
-
-const LINKS = {
-  home: { href: 'index.html', label: '返回首页', title: '首页', icon: 'back' }
-};
-
 const PAGES = {
-  post: { items: ['theme', 'home'] }
+  post: { items: ['theme'] }
 };
 
 function themeButton(title) {
@@ -21,9 +11,7 @@ function floatingItem(name, page) {
   if (name === 'theme') {
     return themeButton(PAGES[page].themeTitle || '单击切换主题');
   }
-  const link = LINKS[name];
-  if (!link) return '';
-  return `<a href="${link.href}" class="navigation-icon" aria-label="${link.label}" title="${link.title}">${ICONS[link.icon]}</a>`;
+  return '';
 }
 
 function renderFloating(page) {
