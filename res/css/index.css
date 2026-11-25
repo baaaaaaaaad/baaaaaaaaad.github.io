@@ -481,6 +481,15 @@ body.dark-mode {
     overflow: hidden;
 }
 
+/* 主题按钮图标随当前主题切换：暗色显示月亮、亮色显示太阳 */
+body.dark-mode #theme-toggle .light-icon {
+    display: none;
+}
+
+body:not(.dark-mode) #theme-toggle .dark-icon {
+    display: none;
+}
+
 /* 主题圆形扩散切换 */
 html.theme-transitioning body,
 html.theme-transitioning body * {
@@ -1112,6 +1121,21 @@ html:has(body.posts-page) {
 body.post-page,
 :is(body.admin-page, #admin-page) {
     display: block;
+}
+
+/* 详情页复用首页静态雨景背景：仅暗色主题显示，亮色下移除避免与主题冲突 */
+body.post-page .background-fallback {
+    display: none;
+}
+
+body.post-page.dark-mode .background-fallback {
+    display: block;
+}
+
+body.post-page header,
+body.post-page main {
+    position: relative;
+    z-index: 1;
 }
 
 body.post-page header,

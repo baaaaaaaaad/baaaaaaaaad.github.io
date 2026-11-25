@@ -1,12 +1,12 @@
 // 全站共享导航渲染器：详情页使用 floating 图标导航。
 const ICONS = {
-  home: `<svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-    <path fill="currentColor" d="M12 3.2 2.8 11h2.4v9h5v-5.6h3.6V20h5v-9h2.4L12 3.2Z"/>
+  back: `<svg class="navigation-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+    <path fill="currentColor" d="M20 11v2H8l5.5 5.5-1.4 1.4L4.2 12l7.9-7.9 1.4 1.4L8 11h12Z"/>
   </svg>`
 };
 
 const LINKS = {
-  home: { href: 'index.html', label: '返回首页', title: '首页', icon: 'home' }
+  home: { href: 'index.html', label: '返回首页', title: '首页', icon: 'back' }
 };
 
 const PAGES = {
