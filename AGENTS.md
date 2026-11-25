@@ -12,7 +12,7 @@ Gist Blog（无后台）— GitHub Pages + Gist + GitHub API
 - 存储：GitHub Gist，`index.json` 保存文章元数据，每篇文章一个 `YYYY-MM-DD--slug.md`。
 - 读写：浏览器直接调用 GitHub API；读取匿名，写入需要 PAT（仅 `gist` 权限）。
 - 技术栈：原生 HTML / CSS / JavaScript ES Modules（无框架、无包管理、无打包器、无测试）。
-- 页面语言与注释：中文。新增注释、文档、提交说明保持中文风格。
+- 页面语言与注释：页面注释与文档保持中文；UI 文本支持中英文切换，语言资源存放于 `res/lang/zh.json` 与 `res/lang/en.json`，通过 `localStorage.lang` 或 `navigator.language` 确定当前语言，`<html lang>` 动态更新。
 
 > 写操作需要 Personal Access Token（PAT），仅勾选 `gist` 权限。
 > 切勿把 PAT 写进源码；管理页只把 PAT 存进当前浏览器的 `localStorage`，并提供一键清除。
