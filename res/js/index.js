@@ -770,6 +770,7 @@ function setupSlides() {
       return;
     }
     if ((view === 'search' && event.key === 'ArrowLeft') ||
+        (view === 'admin' && event.key === 'ArrowRight') ||
         (view === 'article' && event.key === 'ArrowUp' && document.getElementById('article-page').scrollTop <= 0) ||
         (view !== 'home' && event.key === 'Escape')) target = 'home';
     if (!target) return;
