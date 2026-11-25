@@ -82,7 +82,7 @@ async function main() {
     return;
   }
 
-  const title = post.title || '未命名文章';
+  const title = post.title || '📝 未命名文章';
   document.title = `${title} - ${CONFIG.SITE_TITLE}`;
   const titleEl = document.querySelector('#post-title');
   if (titleEl) titleEl.textContent = title;
@@ -126,13 +126,13 @@ async function main() {
 
   if (prevPost && prevPostEl) {
     prevPostEl.href = `post.html?slug=${encodeURIComponent(prevPost.slug)}`;
-    prevPostEl.textContent = `上一篇: ${prevPost.title}`;
+    prevPostEl.textContent = `← ${prevPost.title}`;
     prevPostEl.hidden = false;
   }
 
   if (nextPost && nextPostEl) {
     nextPostEl.href = `post.html?slug=${encodeURIComponent(nextPost.slug)}`;
-    nextPostEl.textContent = `下一篇: ${nextPost.title}`;
+    nextPostEl.textContent = `→ ${nextPost.title}`;
     nextPostEl.hidden = false;
   }
 
