@@ -100,11 +100,6 @@
             </section>
         </header>
         <div class="admin-content">
-            <section class="admin-panel" aria-labelledby="posts-heading">
-                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button">新建</button></div>
-                <div id="admin-refresh-status" class="meta" role="status" aria-live="polite"></div>
-                <div class="table-wrapper"><table id="posts" class="table"><thead><tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="posts-body"></tbody></table></div>
-            </section>
             <section class="admin-panel" aria-labelledby="editor-heading">
                 <div class="admin-panel-heading"><h2 id="editor-heading">新建/编辑文章</h2><button id="save" class="admin-primary" type="button">保存</button></div>
                 <div class="admin-form-grid">
@@ -115,6 +110,11 @@
                     <label class="admin-col-span">摘要<input id="summary" type="text"></label>
                     <label class="admin-col-span">正文（Markdown）<textarea id="body" rows="16"></textarea></label>
                 </div>
+            </section>
+            <section class="admin-panel" aria-labelledby="posts-heading">
+                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button">新建</button></div>
+                <div id="admin-refresh-status" class="meta" role="status" aria-live="polite"></div>
+                <div class="table-wrapper"><table id="posts" class="table"><thead><tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="posts-body"></tbody></table></div>
             </section>
         </div>
         <div id="toast" role="status" aria-live="polite"></div>
