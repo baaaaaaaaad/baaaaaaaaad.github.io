@@ -636,10 +636,6 @@ html.theme-transitioning body * {
     border-bottom: 1px solid var(--border-color);
 }
 
-.slide-stage .admin-link {
-    display: none;
-}
-
 .search-page>.back-home-button {
     position: absolute;
     top: 20px;
