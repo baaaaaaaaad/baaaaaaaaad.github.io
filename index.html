@@ -88,15 +88,13 @@
 <section class="page" id="admin-page" aria-label="文章管理" tabindex="-1" inert aria-hidden="true">
     <button class="back-home-button" data-slide="home" aria-label="返回首页" title="返回首页"><span aria-hidden="true">←</span></button>
     <header class="admin-header">
-        <h2>文章管理</h2>
-            <p>管理 Gist 中的文章与发布状态</p>
+        <h2>管理 Gist 中的文章与发布状态</h2>
             <section class="admin-panel" aria-labelledby="pat-heading">
-                <div class="admin-panel-heading"><div><h2 id="pat-heading">凭据设置</h2><p class="meta">仅在本地使用 PAT 写入 Gist</p></div></div>
+                <div class="admin-panel-heading"><div><h2 id="pat-heading">凭据设置</h2><p class="meta">PAT 保存在当前浏览器，请仅授予 gist 权限</p></div></div>
                 <div class="controls pat-controls">
                     <div class="pat-input-wrapper"><input id="pat" type="password" aria-label="Personal Access Token" placeholder="输入 PAT（仅 gist 权限）" autocomplete="off" spellcheck="false"><button id="pat-toggle" class="pat-toggle" type="button" aria-label="显示 PAT" title="显示/隐藏">👁</button></div>
                     <button id="pat-save" type="button">保存到本地</button><button id="pat-clear" type="button">清除</button>
                 </div>
-                <p class="admin-note">PAT 仅保存在当前浏览器，请仅授予 gist 权限。</p>
             </section>
         </header>
         <div class="admin-content">
