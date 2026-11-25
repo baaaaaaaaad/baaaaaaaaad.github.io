@@ -560,7 +560,9 @@ html.theme-transitioning body * {
 .slide-stage>#admin-page {
     transform: translateX(100%);
     overflow-y: auto;
-    background: var(--bg-color);
+    background: rgba(26, 26, 26, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .slide-stage[data-view="admin"]>#main-page {
