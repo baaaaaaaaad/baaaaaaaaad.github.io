@@ -71,10 +71,9 @@
             <div class="controls" role="search">
                 <select id="tag" aria-label="按标签筛选文章"></select>
                 <input id="q" type="text" placeholder="搜索标题/标签/摘要" aria-label="搜索文章">
+                <span id="refresh-info" class="refresh-info" role="status" aria-live="polite"></span>
                 <button id="refresh-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button>
             </div>
-            <div id="refresh-status" class="meta" role="status" aria-live="polite"></div>
-            <time id="refresh-time" class="meta" datetime=""></time>
         </header>
         <section class="article-list-main" aria-label="文章列表">
             <ul id="post-list" aria-label="文章列表"></ul>
@@ -112,9 +111,7 @@
                 </div>
             </section>
             <section class="admin-panel" aria-labelledby="posts-heading">
-                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button" aria-label="新建" title="新建">📄</button></div>
-                <div id="admin-refresh-status" class="meta" role="status" aria-live="polite"></div>
-                <time id="admin-refresh-time" class="meta" datetime=""></time>
+                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><span id="admin-refresh-info" class="refresh-info" role="status" aria-live="polite"></span><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button" aria-label="新建" title="新建">📄</button></div>
                 <div class="table-wrapper"><table id="posts" class="table"><thead><tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="posts-body"></tbody></table></div>
             </section>
         </div>

@@ -748,6 +748,17 @@ html:has(body.posts-page) {
     align-items: center;
 }
 
+.refresh-info {
+    white-space: nowrap;
+    color: var(--secondary-text);
+    font-size: 0.875rem;
+}
+
+#refresh-posts,
+#refresh-admin-posts {
+    flex-shrink: 0;
+}
+
 #tag,
 #q {
     padding: 10px 15px;

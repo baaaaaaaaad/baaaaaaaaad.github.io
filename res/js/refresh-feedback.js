@@ -20,6 +20,5 @@ export async function finishRefreshFeedback(button, deadline, isCurrent = () => 
 export function updateRefreshTime(el, date = new Date()) {
   if (!el) return;
   const pad = n => String(n).padStart(2, '0');
-  el.dateTime = date.toISOString();
   el.textContent = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }

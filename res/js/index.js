@@ -255,10 +255,9 @@ function loadPosts(force = false) {
   const hadList = listRendered;
   const list = document.querySelector('#post-list');
   const refresh = document.querySelector('#refresh-posts');
-  const status = document.querySelector('#refresh-status');
-  const refreshTime = document.querySelector('#refresh-time');
+  const refreshInfo = document.querySelector('#refresh-info');
   const refreshDeadline = startRefreshFeedback(refresh, force);
-  if (status) status.textContent = hadList || force ? '正在刷新文章…' : '';
+  if (refreshInfo && (hadList || force)) refreshInfo.textContent = '正在刷新…';
   if (!hadList) {
     renderListStatus('正在加载文章…');
     list?.querySelector('.post-list-status')?.classList.add('is-loading');
@@ -282,13 +281,12 @@ function loadPosts(force = false) {
     }
     listLoaded = true;
     listRendered = true;
-    if (status) status.textContent = hadList ? '文章已刷新' : '';
-    updateRefreshTime(refreshTime);
+    updateRefreshTime(refreshInfo);
   }).catch(err => {
     if (generation !== listGeneration) return;
     listFailed = true;
     if (hadList) {
-      if (status) status.textContent = `刷新失败：${err.message}，请点击刷新重试`;
+      if (refreshInfo) refreshInfo.textContent = '刷新失败';
     } else {
       listLoaded = false;
       renderListStatus(`加载失败：${err.message} `);

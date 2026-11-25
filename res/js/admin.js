@@ -41,10 +41,10 @@ function requirePAT() {
 async function loadIndex(manual = false) {
   const tbody = $('#posts-body');
   const refreshButton = $('#refresh-admin-posts');
-  const status = $('#admin-refresh-status');
+  const refreshInfo = $('#admin-refresh-info');
   const requestVersion = ++indexRequestVersion;
   const refreshDeadline = startRefreshFeedback(refreshButton, manual);
-  if (status) status.textContent = '正在刷新文章列表...';
+  if (refreshInfo) refreshInfo.textContent = '正在刷新…';
   if (!hasLoadedIndex && tbody) {
     tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
   }
@@ -54,15 +54,14 @@ async function loadIndex(manual = false) {
     currentPosts = idx.posts || [];
     hasLoadedIndex = true;
     renderTable(currentPosts);
-    if (status) status.textContent = '';
-    updateRefreshTime($('#admin-refresh-time'));
+    updateRefreshTime(refreshInfo);
   } catch (err) {
     if (requestVersion !== indexRequestVersion) return;
     if (!hasLoadedIndex && tbody) {
       tbody.innerHTML = '<tr class="empty-row"><td colspan="6"></td></tr>';
       tbody.querySelector('td').textContent = `加载失败：${err.message || err}`;
     }
-    if (status) status.textContent = `加载失败：${err.message || err} 可点击刷新重试。`;
+    if (refreshInfo) refreshInfo.textContent = '刷新失败';
   } finally {
     await finishRefreshFeedback(refreshButton, refreshDeadline, () => requestVersion === indexRequestVersion);
   }
