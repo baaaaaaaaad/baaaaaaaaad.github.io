@@ -13,3 +13,11 @@ export async function finishRefreshFeedback(button, deadline, isCurrent = () => 
   button.classList.remove('is-refreshing');
   button.disabled = false;
 }
+
+/** 更新列表刷新时间（HH:MM:SS），供文章面板与管理面板复用 */
+export function updateRefreshTime(el, date = new Date()) {
+  if (!el) return;
+  const pad = n => String(n).padStart(2, '0');
+  el.dateTime = date.toISOString();
+  el.textContent = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}

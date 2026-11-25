@@ -6,7 +6,7 @@
 // - 删除：从 Gist 删除该 .md，并同步更新 index.json
 import { CONFIG } from './config.js';
 import { Gist, Util } from './gist.js';
-import { startRefreshFeedback, finishRefreshFeedback } from './refresh-feedback.js';
+import { startRefreshFeedback, finishRefreshFeedback, updateRefreshTime } from './refresh-feedback.js';
 
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
@@ -55,6 +55,7 @@ async function loadIndex(manual = false) {
     hasLoadedIndex = true;
     renderTable(currentPosts);
     if (status) status.textContent = '';
+    updateRefreshTime($('#admin-refresh-time'));
   } catch (err) {
     if (requestVersion !== indexRequestVersion) return;
     if (!hasLoadedIndex && tbody) {
@@ -86,8 +87,8 @@ function renderTable(posts) {
       <td>${p.status}</td>
       <td>${new Date(p.updated_at).toLocaleString()}</td>
       <td>
-        <button data-act="edit" data-file="${p.filename}">编辑</button>
-        <button data-act="del" data-file="${p.filename}">删除</button>
+        <button data-act="edit" data-file="${p.filename}" aria-label="编辑" title="编辑">✏️</button>
+        <button data-act="del" data-file="${p.filename}" aria-label="删除" title="删除">🗑️</button>
       </td>
     `;
     tbody.appendChild(tr);

@@ -2,7 +2,7 @@
 // 详情页与管理页分别由 post.js、admin.js 加载，三者共享 config.js 与 gist.js。
 import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
-import { startRefreshFeedback, finishRefreshFeedback } from './refresh-feedback.js';
+import { startRefreshFeedback, finishRefreshFeedback, updateRefreshTime } from './refresh-feedback.js';
 
 const rainAudio = document.querySelector('#rain-audio');
 const rainAudioToggle = document.querySelector('#rain-audio-toggle');
@@ -256,6 +256,7 @@ function loadPosts(force = false) {
   const list = document.querySelector('#post-list');
   const refresh = document.querySelector('#refresh-posts');
   const status = document.querySelector('#refresh-status');
+  const refreshTime = document.querySelector('#refresh-time');
   const refreshDeadline = startRefreshFeedback(refresh, force);
   if (status) status.textContent = hadList || force ? '正在刷新文章…' : '';
   if (!hadList) {
@@ -282,6 +283,7 @@ function loadPosts(force = false) {
     listLoaded = true;
     listRendered = true;
     if (status) status.textContent = hadList ? '文章已刷新' : '';
+    updateRefreshTime(refreshTime);
   }).catch(err => {
     if (generation !== listGeneration) return;
     listFailed = true;
@@ -294,7 +296,7 @@ function loadPosts(force = false) {
       if (message) {
         const retry = document.createElement('button');
         retry.type = 'button';
-        retry.textContent = '重试';
+        retry.textContent = '🔄';
         retry.addEventListener('click', () => loadPosts());
         message.append(retry);
       }
