@@ -675,6 +675,11 @@ function resetAdminPresses() {
 }
 
 function activateAdmin() {
+  if (localStorage.getItem('gh_pat')) {
+    resetAdminPresses();
+    togglePage('admin-page');
+    return;
+  }
   const now = Date.now();
   adminPressCount = now - adminPressTime <= 2000 ? adminPressCount + 1 : 1;
   adminPressTime = now;
