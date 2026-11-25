@@ -642,6 +642,21 @@ html.theme-transitioning body * {
     left: 20px;
 }
 
+/* 文章列表页和管理页返回按钮 - 绝对定位，不占用纵向空间 */
+#article-page>.back-home-button,
+#admin-page>.back-home-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+/* 确保独立页面容器有 relative 定位供绝对定位子元素参考 */
+body.posts-page #article-page,
+body.admin-page {
+    position: relative;
+}
+
 .slide-navigation {
     position: fixed;
     right: 24px;
