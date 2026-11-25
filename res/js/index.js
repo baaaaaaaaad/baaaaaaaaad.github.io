@@ -296,8 +296,14 @@ function loadPosts(force = false) {
       if (message) {
         const retry = document.createElement('button');
         retry.type = 'button';
-        retry.textContent = '🔄';
-        retry.addEventListener('click', () => loadPosts());
+        retry.className = 'panel-icon-button';
+        retry.setAttribute('aria-label', '重试');
+        retry.title = '重试';
+        const span = document.createElement('span');
+        span.setAttribute('aria-hidden', 'true');
+        span.textContent = '↻';
+        retry.append(span);
+        retry.addEventListener('click', () => loadPosts(true));
         message.append(retry);
       }
     }
