@@ -281,8 +281,8 @@ npx --yes serve .
 - [x] **P10 SW 动态缓存**：只缓存成功响应、动态缓存设容量上限；API 保持 network-first（评估后认为 SWR 仍打 API、省不了配额）。
 - [x] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
 - [x] **P12 死资产清理**：已删除 `res/icon/capitalism.svg`、`res/template/bird.html`、`res/template/bird-background.html`。
-- [ ] **P13 时钟每秒动画开销**：实测有掉帧再优化（低优先级）。
-- [ ] **P14 SEO/分享元数据**：`post.html` 补 OG 与初始 title（产品取舍）。
+- [ ] **P13 时钟每秒动画开销**：实测有掉帧再优化（低优先级）— 已决定跳过，暂不处理。
+- [ ] **P14 SEO/分享元数据**：`post.html` 补 OG 与初始 title（产品取舍）— 已决定跳过。
 
 ## 已知陷阱
 
