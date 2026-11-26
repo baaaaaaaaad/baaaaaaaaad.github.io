@@ -261,6 +261,25 @@ npx --yes serve .
 - **在 `index.json` 里保留关键词字段做更快的前端搜索** — 当前 `applyFilter` 已用 `${title} ${summary} ${tags}` 拼接 + `toLowerCase().includes()`，几十篇文章下 1ms 级完成，暂无瓶颈。文章超过 200 篇时再考虑。
 - ~~**将 `marked` / `DOMPurify` 下载到本地避免依赖 CDN**~~ ✅ 已完成：下载 UMD 构建到 `res/js/vendor/marked.min.js` + `purify.min.js`，`post.html` 改本地路径。暴露全局 `marked` / `DOMPurify`，`post.js` 检查 `typeof` 的守卫仍然生效。
 
+## 优化待办（按优先级，逐项实施）
+
+> 2026-11-26 整理，按建议实施顺序排列；每项完成后验证并确认再进入下一项。
+
+- [x] **P1 索引去冗余**：`admin.js` 保存时不要把正文 `body` 写入 `index.json` 条目，只存元数据，并清理历史冗余正文；不影响正文与编辑功能。
+- [ ] **P2 管理表格注入风险**：`renderTable` 由 `innerHTML` 改为 DOM API / `textContent`，错误提示同理，消除索引字段注入。
+- [ ] **P3 会话内复用 Gist 响应**：`getGist()` 结果内存缓存（短 TTL），管理/写操作复用，减少 `GET /gists/:id` 重复请求与匿名限流压力。
+- [ ] **P4 写路径健壮性**：`upsertPost`/`deletePost` 读取索引走 `ensureOK`，并复用调用方已获取的 gist/index。
+- [ ] **P5 slug 唯一性校验**：新建时校验重名，编辑时排除自身。
+- [ ] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
+- [ ] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
+- [ ] **P8 背景媒体降开销**：`rain.mp4`/`rain.mp3` 改 `preload="metadata"` 或延迟加载，评估压缩/降码率。
+- [ ] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
+- [ ] **P10 SW 动态缓存**：只缓存成功响应、设容量上限或版本清理；API 评估 stale-while-revalidate。
+- [ ] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
+- [ ] **P12 死资产清理**：`res/icon/capitalism.svg`、`res/template/bird*.html` 决定去留并处理引用。
+- [ ] **P13 时钟每秒动画开销**：实测有掉帧再优化（低优先级）。
+- [ ] **P14 SEO/分享元数据**：`post.html` 补 OG 与初始 title（产品取舍）。
+
 ## 已知陷阱
 
 - 页面入口已按页面拆分：`index.js`、`post.js` 各自只加载一次，`admin.js` 由首页管理面板动态导入。新增页面时不要把它们全部引入，否则会重复绑定事件。

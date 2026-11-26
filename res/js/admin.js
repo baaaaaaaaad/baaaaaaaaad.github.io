@@ -165,6 +165,15 @@ async function upsert(isUpdate, oldFilename) {
   const existing = isUpdate ? currentPosts.find(p => p.filename === filename) : null;
   const createdAt = existing?.created_at || now;
 
+  // 索引只存元数据，正文 body 仅写入 .md 文件
+  const metaForIndex = {
+    title: meta.title,
+    summary: meta.summary,
+    tags: meta.tags,
+    status: meta.status,
+    slug: meta.slug
+  };
+
   // 组装 Front Matter + 正文
   const markdown = Util.buildFrontMatter({ ...meta, created_at: createdAt, updated_at: now });
 
@@ -177,12 +186,13 @@ async function upsert(isUpdate, oldFilename) {
       const existsIdx = posts.findIndex(p => p.filename === filename);
       if (existsIdx >= 0) {
         // 更新：保留 created_at，更新其他字段与 updated_at
-        posts[existsIdx] = { ...posts[existsIdx], ...meta, filename, updated_at: now };
+        posts[existsIdx] = { ...posts[existsIdx], ...metaForIndex, filename, updated_at: now };
       } else {
         // 新建：追加一条
-        posts.push({ ...meta, filename, created_at: createdAt, updated_at: now });
+        posts.push({ ...metaForIndex, filename, created_at: createdAt, updated_at: now });
       }
-      index.posts = posts;
+      // 正文只存于 .md 文件：移除索引条目中的 body，并顺带清理历史冗余
+      index.posts = posts.map(({ body, ...rest }) => rest);
       return index;
     }
   });
