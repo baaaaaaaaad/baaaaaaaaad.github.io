@@ -197,6 +197,15 @@ async function upsert(isUpdate, oldFilename) {
     return;
   }
 
+  // slug 唯一性校验：新建时不得与已有文章重名，编辑时排除自身
+  const slugConflict = currentPosts.some(p =>
+    p.filename !== (isUpdate ? oldFilename : null) && p.slug === meta.slug
+  );
+  if (slugConflict) {
+    toast(`slug「${meta.slug}」已存在，请更换后再保存`);
+    return;
+  }
+
   // 文件名：更新时保持旧文件名，避免外链失效；新建时基于当前日期 + slug
   const filename = isUpdate && oldFilename ? oldFilename : Util.buildFilename(now, meta.slug);
   const existing = isUpdate ? currentPosts.find(p => p.filename === filename) : null;
