@@ -266,7 +266,7 @@ npx --yes serve .
 > 2026-11-26 整理，按建议实施顺序排列；每项完成后验证并确认再进入下一项。
 
 - [x] **P1 索引去冗余**：`admin.js` 保存时不要把正文 `body` 写入 `index.json` 条目，只存元数据，并清理历史冗余正文；不影响正文与编辑功能。
-- [ ] **P2 管理表格注入风险**：`renderTable` 由 `innerHTML` 改为 DOM API / `textContent`，错误提示同理，消除索引字段注入。
+- [x] **P2 管理表格注入风险**：`renderTable` 由 `innerHTML` 改为 DOM API / `textContent`，错误提示同理，消除索引字段注入。
 - [ ] **P3 会话内复用 Gist 响应**：`getGist()` 结果内存缓存（短 TTL），管理/写操作复用，减少 `GET /gists/:id` 重复请求与匿名限流压力。
 - [ ] **P4 写路径健壮性**：`upsertPost`/`deletePost` 读取索引走 `ensureOK`，并复用调用方已获取的 gist/index。
 - [ ] **P5 slug 唯一性校验**：新建时校验重名，编辑时排除自身。

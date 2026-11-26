@@ -46,7 +46,13 @@ async function loadIndex(manual = false) {
   const refreshDeadline = startRefreshFeedback(refreshButton, manual);
   if (refreshInfo) refreshInfo.textContent = '正在刷新…';
   if (!hasLoadedIndex && tbody) {
-    tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
+    const tr = document.createElement('tr');
+    tr.className = 'loading-row';
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    td.textContent = '加载中...';
+    tr.append(td);
+    tbody.replaceChildren(tr);
   }
   try {
     const idx = await Gist.getIndex();
@@ -58,8 +64,13 @@ async function loadIndex(manual = false) {
   } catch (err) {
     if (requestVersion !== indexRequestVersion) return;
     if (!hasLoadedIndex && tbody) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="6"></td></tr>';
-      tbody.querySelector('td').textContent = `加载失败：${err.message || err}`;
+      const tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.textContent = `加载失败：${err.message || err}`;
+      tr.append(td);
+      tbody.replaceChildren(tr);
     }
     if (refreshInfo) refreshInfo.textContent = '刷新失败';
   } finally {
@@ -72,25 +83,51 @@ function renderTable(posts) {
   const tbody = $('#posts-body');
   if (!tbody) return;
 
-  tbody.innerHTML = '';
+  tbody.replaceChildren();
   if (!posts.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">还没有文章，在下方编辑区填写内容后点击「保存」即可发布第一篇。</td></tr>`;
+    const tr = document.createElement('tr');
+    tr.className = 'empty-row';
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    td.textContent = '还没有文章，在下方编辑区填写内容后点击「保存」即可发布第一篇。';
+    tr.append(td);
+    tbody.append(tr);
     return;
   }
   for (const p of [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${p.title}</td>
-      <td>${p.slug}</td>
-      <td>${(p.tags || []).join(', ')}</td>
-      <td>${p.status}</td>
-      <td>${new Date(p.updated_at).toLocaleString()}</td>
-      <td>
-        <button data-act="edit" data-file="${p.filename}" aria-label="编辑" title="编辑">✏️</button>
-        <button data-act="del" data-file="${p.filename}" aria-label="删除" title="删除">🗑️</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+
+    const titleTd = document.createElement('td');
+    titleTd.textContent = p.title || '';
+    const slugTd = document.createElement('td');
+    slugTd.textContent = p.slug || '';
+    const tagsTd = document.createElement('td');
+    tagsTd.textContent = (p.tags || []).join(', ');
+    const statusTd = document.createElement('td');
+    statusTd.textContent = p.status || '';
+    const updatedTd = document.createElement('td');
+    updatedTd.textContent = new Date(p.updated_at).toLocaleString();
+    const actionsTd = document.createElement('td');
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.dataset.act = 'edit';
+    editBtn.dataset.file = p.filename || '';
+    editBtn.setAttribute('aria-label', '编辑');
+    editBtn.title = '编辑';
+    editBtn.textContent = '✏️';
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.dataset.act = 'del';
+    delBtn.dataset.file = p.filename || '';
+    delBtn.setAttribute('aria-label', '删除');
+    delBtn.title = '删除';
+    delBtn.textContent = '🗑️';
+
+    actionsTd.append(editBtn, delBtn);
+    tr.append(titleTd, slugTd, tagsTd, statusTd, updatedTd, actionsTd);
+    tbody.append(tr);
   }
 }
 
