@@ -78,7 +78,6 @@ npx --yes serve .
 ├─ sw.js                       # Service Worker：静态资源 cache-first，HTML/Gist API network-first
 ├─ index.html                 # 首页
 ├─ res/
-│  ├─ template/               # 已归档的演示页面（bird.html、bird-background.html）
 │  ├─ audio/rain.mp3          # 首页雨声
 │  ├─ css/index.css           # 全站唯一样式表（主题变量 + 响应式 + 详情/管理页基础布局）
 │  ├─ icon/                   # favicon 与搜索引擎图标
@@ -207,9 +206,7 @@ npx --yes serve .
 
 ## 页面模板迁移待办
 
-> 独立页面 `posts.html`、`search.html`、`admin.html` 已删除，其功能由首页同页搜索、文章列表和管理面板承担。`post.html` 保留在根目录作为可分享、可刷新、可收录的文章详情入口。`res/template/` 仅剩两个椋鸟演示页面，尚待决定去留。迁移不提供鉴权。
-
-- [ ] **`bird.html` 和 `bird-background.html`**：评估两个独立椋鸟演示页面是否仍需保留、迁作模板或归档；先确认引用、用途及旧链接，避免误认其为当前首页背景。
+> 独立页面 `posts.html`、`search.html`、`admin.html` 已删除，其功能由首页同页搜索、文章列表和管理面板承担。`post.html` 保留在根目录作为可分享、可刷新、可收录的文章详情入口。`res/template/` 下的两个椋鸟演示页面（`bird.html`、`bird-background.html`）已于 2026-11-26 删除。迁移不提供鉴权。
 
 `index.html` 是 GitHub Pages 首页入口，可保留为主入口。迁移不改变 PAT 和公开 Gist 的安全边界。
 
@@ -283,7 +280,7 @@ npx --yes serve .
 - [x] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
 - [x] **P10 SW 动态缓存**：只缓存成功响应、动态缓存设容量上限；API 保持 network-first（评估后认为 SWR 仍打 API、省不了配额）。
 - [x] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
-- [ ] **P12 死资产清理**：`res/icon/capitalism.svg`、`res/template/bird*.html` 决定去留并处理引用。
+- [x] **P12 死资产清理**：已删除 `res/icon/capitalism.svg`、`res/template/bird.html`、`res/template/bird-background.html`。
 - [ ] **P13 时钟每秒动画开销**：实测有掉帧再优化（低优先级）。
 - [ ] **P14 SEO/分享元数据**：`post.html` 补 OG 与初始 title（产品取舍）。
 
