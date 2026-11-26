@@ -1,10 +1,10 @@
-const STATIC_CACHE = 'static-v45';
+const STATIC_CACHE = 'static-v46';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
 const STATIC_ASSETS = [
   './',
   'index.html',
-//   'post.html',
+  'post.html',
   'res/css/index.css',
   'res/js/config.js',
   'res/js/gist.js',

@@ -280,7 +280,7 @@ npx --yes serve .
 - [x] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
 - [x] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
 - [x] **P8 背景媒体降开销**：静态图压缩，视频/音频延迟到空闲时段加载；`rain.mp4`/`rain.mp3` 压缩/降码率仍为待评估项。
-- [ ] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
+- [x] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
 - [ ] **P10 SW 动态缓存**：只缓存成功响应、设容量上限或版本清理；API 评估 stale-while-revalidate。
 - [ ] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
 - [ ] **P12 死资产清理**：`res/icon/capitalism.svg`、`res/template/bird*.html` 决定去留并处理引用。
