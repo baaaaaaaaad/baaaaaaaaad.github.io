@@ -276,7 +276,7 @@ npx --yes serve .
 - [x] **P3 会话内复用 Gist 响应**：`getGist()` 结果内存缓存（短 TTL），管理/写操作复用，减少 `GET /gists/:id` 重复请求与匿名限流压力。
 - [x] **P4 写路径健壮性**：`upsertPost`/`deletePost` 读取索引走 `ensureOK`，并复用调用方已获取的 gist/index。
 - [x] **P5 slug 唯一性校验**：新建时校验重名，编辑时排除自身。
-- [ ] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
+- [x] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
 - [ ] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
 - [ ] **P8 背景媒体降开销**：`rain.mp4`/`rain.mp3` 改 `preload="metadata"` 或延迟加载，评估压缩/降码率。
 - [ ] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
