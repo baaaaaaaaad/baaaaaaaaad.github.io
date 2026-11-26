@@ -8,6 +8,13 @@ import { Gist } from './gist.js';
 import { setupThemeToggle } from './theme.js';
 import { renderNav } from './nav.js';
 
+// 完整背景图加载完成后淡入，避免先看到像素占位/渐变
+function revealBackground() {
+  document.querySelector('.background-fallback')?.classList.add('is-loaded');
+}
+if (document.readyState === 'complete') revealBackground();
+else window.addEventListener('load', revealBackground, { once: true });
+
 renderNav('post');
 
 /** 返回上一页：站内来源使用浏览器历史，否则回首页 */

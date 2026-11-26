@@ -4,6 +4,13 @@ import { CONFIG } from './config.js';
 import { Gist } from './gist.js';
 import { startRefreshFeedback, finishRefreshFeedback, updateRefreshTime } from './refresh-feedback.js';
 
+// 完整背景图加载完成后淡入，避免先看到像素占位/渐变
+function revealBackground() {
+  document.querySelector('.background-fallback')?.classList.add('is-loaded');
+}
+if (document.readyState === 'complete') revealBackground();
+else window.addEventListener('load', revealBackground, { once: true });
+
 const rainAudio = document.querySelector('#rain-audio');
 const rainAudioToggle = document.querySelector('#rain-audio-toggle');
 if (rainAudio && rainAudioToggle) {
@@ -640,6 +647,8 @@ function updateDayProgress(date) {
  */
 function initClock() {
   updateClock();  // 立即更新一次
+  const progress = document.getElementById('day-progress');
+  if (progress) progress.hidden = false;
   setInterval(updateClock, 1000);  // 设置每秒更新
 }
 

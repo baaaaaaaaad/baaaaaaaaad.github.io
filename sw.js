@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v47';
+const STATIC_CACHE = 'static-v48';
 const DYNAMIC_CACHE = 'dynamic-v3';
 const DYNAMIC_MAX_ENTRIES = 200;
 
@@ -19,6 +19,7 @@ const STATIC_ASSETS = [
   'res/js/vendor/marked.min.js',
   'res/js/vendor/purify.min.js',
   'res/img/rain.jpg',
+  'res/img/rain-small.jpg',
   'res/icon/rainbow.png',
   'res/icon/bing-color.svg',
   'res/icon/baidu-color.svg',

@@ -73,6 +73,7 @@ body {
     color: var(--text-color);
 }
 
+.background-placeholder,
 .background-fallback,
 #rain-background {
     position: fixed;
@@ -83,8 +84,19 @@ body {
     pointer-events: none;
 }
 
+.background-placeholder {
+    background: center / cover no-repeat url('../img/rain-small.jpg'), linear-gradient(to bottom, rgb(226, 184, 160) 0%, rgb(222, 142, 140) 44.4%, rgb(170, 124, 162) 74%, rgb(28, 18, 30) 74%);
+    image-rendering: pixelated;
+}
+
 .background-fallback {
     background: center / cover no-repeat url('../img/rain.jpg'), linear-gradient(to bottom, rgb(226, 184, 160) 0%, rgb(222, 142, 140) 44.4%, rgb(170, 124, 162) 74%, rgb(28, 18, 30) 74%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+.background-fallback.is-loaded {
+    opacity: 1;
 }
 
 #rain-background {
@@ -191,6 +203,10 @@ body {
     gap: 10px;
     width: min(320px, 78vw);
     color: var(--secondary-text);
+}
+
+.day-progress[hidden] {
+    display: none;
 }
 
 .day-progress-track {
@@ -1216,6 +1232,14 @@ body.post-page .background-fallback {
 }
 
 body.post-page.dark-mode .background-fallback {
+    display: block;
+}
+
+body.post-page .background-placeholder {
+    display: none;
+}
+
+body.post-page.dark-mode .background-placeholder {
     display: block;
 }
 
