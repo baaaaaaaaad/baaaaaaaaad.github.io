@@ -282,7 +282,7 @@ npx --yes serve .
 - [x] **P8 背景媒体降开销**：静态图压缩，视频/音频延迟到空闲时段加载；`rain.mp4`/`rain.mp3` 压缩/降码率仍为待评估项。
 - [x] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
 - [x] **P10 SW 动态缓存**：只缓存成功响应、动态缓存设容量上限；API 保持 network-first（评估后认为 SWR 仍打 API、省不了配额）。
-- [ ] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
+- [x] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
 - [ ] **P12 死资产清理**：`res/icon/capitalism.svg`、`res/template/bird*.html` 决定去留并处理引用。
 - [ ] **P13 时钟每秒动画开销**：实测有掉帧再优化（低优先级）。
 - [ ] **P14 SEO/分享元数据**：`post.html` 补 OG 与初始 title（产品取舍）。

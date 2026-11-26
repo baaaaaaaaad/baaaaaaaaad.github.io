@@ -130,7 +130,7 @@ async function main() {
   // 上一篇/下一篇只使用已发布文章，并按创建时间升序排列
   const published = allPosts
     .filter(p => p.status === 'published')
-    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    .sort((a, b) => (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0));
   const navIndex = published.findIndex(p => p.slug === slug);
   const prevPost = navIndex > 0 ? published[navIndex - 1] : null;
   const nextPost = navIndex >= 0 && navIndex < published.length - 1 ? published[navIndex + 1] : null;

@@ -342,7 +342,7 @@ function applyFilter(animate = false, preservePage = false) {
     const text = `${p.title} ${p.summary} ${(p.tags || []).join(' ')}`.toLowerCase();
     const okQ = !q || text.includes(q.toLowerCase());
     return okTag && okQ;
-  }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }).sort((a, b) => (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0));
 
   state.page = preservePage ? Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE))) : 1;
   renderList(animate);
