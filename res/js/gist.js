@@ -105,6 +105,13 @@ async function fetchText(url, opts = {}) {
   return res.text();
 }
 
+/** GET raw JSON：fetch + ensureOK + parse，用于 raw_url 的 index.json */
+async function fetchRawJSON(url) {
+  const res = await fetch(url);
+  await ensureOK(res);
+  return res.json();
+}
+
 export const Gist = {
   /** 拉取 Gist 的完整结构（含 files 列表与 raw_url） */
   async getGist() {
@@ -143,9 +150,7 @@ export const Gist = {
     gist = gist || await this.getGist();
     const idx = gist.files['index.json'];
     if (!idx) throw new Error('index.json 不存在，请先在你的 Gist 中创建它');
-    const res = await fetch(idx.raw_url);
-    await ensureOK(res);
-    return res.json();
+    return fetchRawJSON(idx.raw_url);
   },
 
   /** 根据文件名读取 Markdown 原文 */
@@ -168,7 +173,7 @@ export const Gist = {
    * - 写入（或覆盖）对应的 .md 文件
    * - 同时把 index.json 用 indexUpdater(index) 变换后回写
    */
-  async upsertPost({ filename, markdown, indexUpdater }) {
+  async upsertPost({ filename, markdown, indexUpdater, gist = null, index = null }) {
     if (USE_MOCK_DATA) {
       // 更新模拟数据
       MOCK_DATA.posts[filename] = markdown;
@@ -189,12 +194,12 @@ export const Gist = {
         }
       };
     }
-    const gist = await this.getGist();
+    gist = gist || await this.getGist();
     const idxFile = gist.files['index.json'];
     if (!idxFile) throw new Error('index.json 不存在');
 
-    const index = await (await fetch(idxFile.raw_url)).json();
-    const newIndex = indexUpdater(index);
+    const currentIndex = index || await fetchRawJSON(idxFile.raw_url);
+    const newIndex = indexUpdater(currentIndex);
 
     const body = {
       description: gist.description || 'blog data',
@@ -223,7 +228,7 @@ export const Gist = {
    * - 在 PATCH body.files 中把该文件名设为 null
    * - 同时把 index.json 按 indexUpdater(index) 变换后回写
    */
-  async deletePost({ filename, indexUpdater }) {
+  async deletePost({ filename, indexUpdater, gist = null, index = null }) {
     if (USE_MOCK_DATA) {
       // 删除模拟数据
       delete MOCK_DATA.posts[filename];
@@ -241,12 +246,12 @@ export const Gist = {
         }
       };
     }
-    const gist = await this.getGist();
+    gist = gist || await this.getGist();
     const idxFile = gist.files['index.json'];
     if (!idxFile) throw new Error('index.json 不存在');
 
-    const index = await (await fetch(idxFile.raw_url)).json();
-    const newIndex = indexUpdater(index);
+    const currentIndex = index || await fetchRawJSON(idxFile.raw_url);
+    const newIndex = indexUpdater(currentIndex);
 
     const body = {
       files: {
