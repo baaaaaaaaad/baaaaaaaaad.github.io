@@ -9,6 +9,16 @@ import { CONFIG } from './config.js';
 
 const API_BASE = 'https://api.github.com';
 
+// Gist 响应会话内缓存：减少 GET /gists/:id 的重复请求与匿名限流压力
+const GIST_CACHE_TTL = 60 * 1000; // 60 秒
+let gistCache = null;
+let gistCacheTime = 0;
+
+function setGistCache(gist) {
+  gistCache = gist;
+  gistCacheTime = Date.now();
+}
+
 // Mock 数据开关 - 设置为 true 时使用本地模拟数据
 export const USE_MOCK_DATA = false;
 
@@ -118,7 +128,11 @@ export const Gist = {
         }
       };
     }
-    return fetchJSON(`${API_BASE}/gists/${CONFIG.GIST_ID}`);
+    const now = Date.now();
+    if (gistCache && now - gistCacheTime < GIST_CACHE_TTL) return gistCache;
+    const gist = await fetchJSON(`${API_BASE}/gists/${CONFIG.GIST_ID}`);
+    setGistCache(gist);
+    return gist;
   },
 
   /** 读取 index.json 的内容（优先用 raw_url 减少 API 配额消耗） */
@@ -200,7 +214,8 @@ export const Gist = {
       body: JSON.stringify(body)
     });
     await ensureOK(res);
-    return res.json();
+    setGistCache(await res.json());
+    return gistCache;
   },
 
   /**
@@ -250,7 +265,8 @@ export const Gist = {
       body: JSON.stringify(body)
     });
     await ensureOK(res);
-    return res.json();
+    setGistCache(await res.json());
+    return gistCache;
   }
 };
 
