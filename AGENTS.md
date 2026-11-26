@@ -271,13 +271,14 @@ npx --yes serve .
 > 2026-11-26 整理，按建议实施顺序排列；每项完成后验证并确认再进入下一项。
 
 - [x] **重构：管理面板移除文章表格，编辑/删除移入文章列表（配置 PAT 时显示），草稿开关 + 编辑跳转**（2026-11-26）。
+- [ ] **文章列表编辑/删除样式**：优化文章列表在显示编辑/删除按钮与草稿徽标时的卡片布局与移动端表现（按钮间距、徽标对齐、草稿开关位置）。
 - [x] **P1 索引去冗余**：`admin.js` 保存时不要把正文 `body` 写入 `index.json` 条目，只存元数据，并清理历史冗余正文；不影响正文与编辑功能。
 - [x] **P2 管理表格注入风险**：`renderTable` 由 `innerHTML` 改为 DOM API / `textContent`，错误提示同理，消除索引字段注入。
 - [x] **P3 会话内复用 Gist 响应**：`getGist()` 结果内存缓存（短 TTL），管理/写操作复用，减少 `GET /gists/:id` 重复请求与匿名限流压力。
 - [x] **P4 写路径健壮性**：`upsertPost`/`deletePost` 读取索引走 `ensureOK`，并复用调用方已获取的 gist/index。
 - [x] **P5 slug 唯一性校验**：新建时校验重名，编辑时排除自身。
 - [x] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
-- [ ] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
+- [x] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
 - [ ] **P8 背景媒体降开销**：`rain.mp4`/`rain.mp3` 改 `preload="metadata"` 或延迟加载，评估压缩/降码率。
 - [ ] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
 - [ ] **P10 SW 动态缓存**：只缓存成功响应、设容量上限或版本清理；API 评估 stale-while-revalidate。
