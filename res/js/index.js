@@ -111,7 +111,8 @@ const state = {
   filtered: [],   // 经过标签/搜索过滤后的文章
   tag: 'all',     // 当前筛选标签
   q: '',          // 当前搜索关键词（简单包含匹配）
-  page: 1         // 当前页码（从 1 开始）
+  page: 1,        // 当前页码（从 1 开始）
+  showDrafts: false // 是否显示草稿（仅在配置 PAT 时可用）
 };
 
 /** 将 ISO 时间格式化为 YYYY.MM.DD */
@@ -136,12 +137,23 @@ function createPostCard(post, index) {
   link.href = `post.html?slug=${encodeURIComponent(post.slug)}`;
   link.textContent = post.title || '';
 
+  const meta = document.createElement('div');
+  meta.className = 'post-card-meta';
+
   const date = document.createElement('time');
   date.className = 'post-card-date';
   date.dateTime = post.created_at || '';
   date.textContent = formatPostDate(post.created_at);
+  meta.append(date);
 
-  head.append(link, date);
+  if (post.status !== 'published') {
+    const badge = document.createElement('span');
+    badge.className = 'draft-badge';
+    badge.textContent = '草稿';
+    meta.append(badge);
+  }
+
+  head.append(link, meta);
 
   const summary = document.createElement('p');
   summary.className = 'post-card-summary';
@@ -158,7 +170,95 @@ function createPostCard(post, index) {
 
   li.append(head, summary);
   if (tags.childElementCount) li.append(tags);
+
+  if (hasPat()) {
+    const actions = document.createElement('div');
+    actions.className = 'post-card-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'panel-icon-button';
+    editBtn.dataset.act = 'edit';
+    editBtn.dataset.file = post.filename || '';
+    editBtn.setAttribute('aria-label', `编辑 ${post.title || ''}`);
+    editBtn.title = '编辑';
+    editBtn.textContent = '✏️';
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'panel-icon-button';
+    delBtn.dataset.act = 'del';
+    delBtn.dataset.file = post.filename || '';
+    delBtn.setAttribute('aria-label', `删除 ${post.title || ''}`);
+    delBtn.title = '删除';
+    delBtn.textContent = '🗑️';
+
+    actions.append(editBtn, delBtn);
+    li.append(actions);
+  }
+
   return li;
+}
+
+/** 当前浏览器是否已配置 PAT */
+function hasPat() {
+  return !!localStorage.getItem('gh_pat');
+}
+
+/** 列表级轻提示（删除成功/失败等） */
+let listToastTimer = null;
+function showListToast(msg) {
+  const el = document.querySelector('#list-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(listToastTimer);
+  listToastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2000);
+}
+
+/** 根据 PAT 状态更新草稿开关可见性；未配置 PAT 时强制关闭草稿显示 */
+function updateDraftToggle() {
+  const label = document.querySelector('#draft-toggle');
+  const cb = document.querySelector('#show-drafts');
+  const show = hasPat();
+  if (label) label.hidden = !show;
+  if (!show) {
+    state.showDrafts = false;
+    if (cb) cb.checked = false;
+  }
+}
+
+/** 文章卡片上的“编辑/删除”按钮点击处理 */
+async function handlePostAction(e) {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const post = state.all.find(p => p.filename === btn.dataset.file);
+  if (!post) return;
+
+  if (btn.dataset.act === 'edit') {
+    try {
+      togglePage('admin-page');
+      const { openEditor } = await import('./admin.js');
+      await openEditor(post);
+    } catch (err) {
+      showListToast(`编辑失败：${err.message || err}`);
+    }
+  } else if (btn.dataset.act === 'del') {
+    if (!confirm(`确定删除「${post.title}」？`)) return;
+    try {
+      await Gist.deletePost({
+        filename: post.filename,
+        indexUpdater(index) {
+          index.posts = (index.posts || []).filter(p => p.filename !== post.filename);
+          return index;
+        }
+      });
+      showListToast('已删除');
+      loadPosts(true);
+    } catch (err) {
+      showListToast(`删除失败：${err.message || err}`);
+    }
+  }
 }
 
 /** 渲染加载 / 空列表提示 */
@@ -182,10 +282,10 @@ function renderList(animate = false) {
   if (ul) {
     ul.classList.toggle('animate-in', animate && pageItems.length > 0);
     if (!pageItems.length) {
-      const hasPublished = state.all.some(post => post.status === 'published');
+      const hasAny = state.all.length > 0;
       const li = document.createElement('li');
       li.className = 'post-list-status';
-      li.textContent = hasPublished ? '没有找到匹配的文章' : '这里还没有文章';
+      li.textContent = hasAny ? '没有找到匹配的文章' : '这里还没有文章';
       ul.replaceChildren(li);
     } else {
       const fragment = document.createDocumentFragment();
@@ -225,7 +325,7 @@ function rebuildFilters() {
 function applyFilter(animate = false, preservePage = false) {
   const { tag, q } = state;
   state.filtered = state.all.filter(p => {
-    if (p.status !== 'published') return false; // 仅展示已发布
+    if (!state.showDrafts && p.status !== 'published') return false; // 默认仅展示已发布
     const okTag = tag === 'all' || (p.tags || []).includes(tag);
     const text = `${p.title} ${p.summary} ${(p.tags || []).join(' ')}`.toLowerCase();
     const okQ = !q || text.includes(q.toLowerCase());
@@ -346,6 +446,23 @@ async function main() {
       if (listLoaded) applyFilter();
     });
   }
+
+  const draftCb = document.querySelector('#show-drafts');
+  if (draftCb) {
+    draftCb.addEventListener('change', e => {
+      state.showDrafts = e.target.checked;
+      if (listLoaded) applyFilter();
+    });
+  }
+
+  document.querySelector('#post-list')?.addEventListener('click', handlePostAction);
+
+  document.addEventListener('pat-changed', () => {
+    updateDraftToggle();
+    if (listLoaded) applyFilter();
+  });
+
+  updateDraftToggle();
 
   const prevEl = document.querySelector('#prev');
   if (prevEl) {

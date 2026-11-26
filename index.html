@@ -71,6 +71,7 @@
             <div class="controls" role="search">
                 <select id="tag" aria-label="按标签筛选文章"></select>
                 <input id="q" type="text" placeholder="搜索标题/标签/摘要" aria-label="搜索文章">
+                <label class="draft-toggle" id="draft-toggle" hidden><input id="show-drafts" type="checkbox"> 显示草稿</label>
                 <span id="refresh-info" class="refresh-info" role="status" aria-live="polite"></span>
                 <button id="refresh-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button>
             </div>
@@ -83,6 +84,7 @@
 <button id="next" aria-label="下一页" title="下一页">▶</button>
             </div>
         </section>
+        <div id="list-toast" role="status" aria-live="polite"></div>
     </div>
 
 <section class="page" id="admin-page" aria-label="文章管理" tabindex="-1" inert aria-hidden="true">
@@ -99,7 +101,7 @@
         </header>
         <div class="admin-content">
             <section class="admin-panel" aria-labelledby="editor-heading">
-                <div class="admin-panel-heading"><h2 id="editor-heading">新建/编辑文章</h2><button id="save" class="admin-primary" type="button" aria-label="保存" title="保存">💾</button></div>
+                <div class="admin-panel-heading"><h2 id="editor-heading">新建/编辑文章</h2><button id="save" class="admin-primary" type="button" aria-label="保存" title="保存">💾</button><button id="new" type="button" aria-label="新建" title="新建">📄</button></div>
                 <div class="admin-form-grid">
                     <label>标题<input id="title" type="text"></label>
                     <label class="admin-slug">Slug<input id="slug" type="text" placeholder="留空自动生成"><span class="admin-form-hint" id="slug-hint"></span></label>
@@ -109,10 +111,6 @@
                     <label class="admin-col-span">正文（Markdown）<textarea id="body" rows="16"></textarea></label>
                     <div class="admin-form-actions admin-col-span"><button id="save-bottom" class="admin-primary" type="button" aria-label="保存" title="保存">💾</button></div>
                 </div>
-            </section>
-            <section class="admin-panel" aria-labelledby="posts-heading">
-                <div class="admin-panel-heading"><div class="admin-list-title"><h2 id="posts-heading">文章列表</h2><span id="admin-refresh-info" class="refresh-info" role="status" aria-live="polite"></span><button id="refresh-admin-posts" class="panel-icon-button" type="button" aria-label="刷新文章列表" title="刷新文章列表"><span aria-hidden="true">↻</span></button></div><button id="new" type="button" aria-label="新建" title="新建">📄</button></div>
-                <div class="table-wrapper"><table id="posts" class="table"><thead><tr><th>标题</th><th>Slug</th><th>标签</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="posts-body"></tbody></table></div>
             </section>
         </div>
         <div id="toast" role="status" aria-live="polite"></div>

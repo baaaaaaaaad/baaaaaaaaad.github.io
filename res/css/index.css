@@ -763,8 +763,21 @@ html:has(body.posts-page) {
     font-size: 0.875rem;
 }
 
-#refresh-posts,
-#refresh-admin-posts {
+.draft-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--secondary-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.draft-toggle input {
+    margin: 0;
+}
+
+#refresh-posts {
     flex-shrink: 0;
 }
 
@@ -914,6 +927,32 @@ html:has(body.posts-page) {
 
 #post-list li.post-card:hover .tag-chip {
     border-color: var(--accent-color);
+}
+
+.post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.draft-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid var(--accent-color);
+    border-radius: 999px;
+    color: var(--accent-color);
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+
+.post-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
 }
 
 @keyframes cardIn {
@@ -1495,6 +1534,22 @@ body.post-page #navigation a {
 }
 
 :is(body.admin-page, #admin-page) #toast {
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    transform: translateX(-50%);
+    background: var(--text-color);
+    color: var(--bg-color);
+    padding: 10px 18px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+#article-page #list-toast {
     position: absolute;
     left: 50%;
     top: 30px;

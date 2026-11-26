@@ -1,23 +1,15 @@
-// 管理页：新建/编辑/删除。
+// 管理页：PAT 凭据 + 新建/编辑文章。
 // - 写操作需要 PAT（Personal Access Token，勾选 gist 权限即可）
 // - PAT 只保存在浏览器 localStorage，提供保存/清除按钮
 // - 新建：生成文件名 + Front Matter，更新 index.json
-// - 编辑：读取 .md，回填到表单，保存时覆盖同一文件名
-// - 删除：从 Gist 删除该 .md，并同步更新 index.json
-import { CONFIG } from './config.js';
+// - 编辑：由首页文章列表调用 openEditor() 回填表单，保存时覆盖同一文件名
 import { Gist, Util } from './gist.js';
-import { startRefreshFeedback, finishRefreshFeedback, updateRefreshTime } from './refresh-feedback.js';
 
 /** DOM 快捷选择 */
 function $(s) { return document.querySelector(s); }
 
 /** 当前正在编辑的文件名；为 null 时表示新建 */
 let editingFilename = null;
-
-/** 当前索引中的文章，用于编辑时保留 created_at */
-let currentPosts = [];
-let indexRequestVersion = 0;
-let hasLoadedIndex = false;
 
 /** 简单的消息提示 */
 function toast(msg) {
@@ -35,100 +27,6 @@ function toast(msg) {
 function requirePAT() {
   const pat = localStorage.getItem('gh_pat');
   if (!pat) throw new Error('未设置 PAT。请先在凭据设置中输入（仅勾选 gist 权限）。');
-}
-
-/** 拉取 index.json 并渲染到列表表格 */
-async function loadIndex(manual = false) {
-  const tbody = $('#posts-body');
-  const refreshButton = $('#refresh-admin-posts');
-  const refreshInfo = $('#admin-refresh-info');
-  const requestVersion = ++indexRequestVersion;
-  const refreshDeadline = startRefreshFeedback(refreshButton, manual);
-  if (refreshInfo) refreshInfo.textContent = '正在刷新…';
-  if (!hasLoadedIndex && tbody) {
-    const tr = document.createElement('tr');
-    tr.className = 'loading-row';
-    const td = document.createElement('td');
-    td.colSpan = 6;
-    td.textContent = '加载中...';
-    tr.append(td);
-    tbody.replaceChildren(tr);
-  }
-  try {
-    const idx = await Gist.getIndex();
-    if (requestVersion !== indexRequestVersion) return;
-    currentPosts = idx.posts || [];
-    hasLoadedIndex = true;
-    renderTable(currentPosts);
-    updateRefreshTime(refreshInfo);
-  } catch (err) {
-    if (requestVersion !== indexRequestVersion) return;
-    if (!hasLoadedIndex && tbody) {
-      const tr = document.createElement('tr');
-      tr.className = 'empty-row';
-      const td = document.createElement('td');
-      td.colSpan = 6;
-      td.textContent = `加载失败：${err.message || err}`;
-      tr.append(td);
-      tbody.replaceChildren(tr);
-    }
-    if (refreshInfo) refreshInfo.textContent = '刷新失败';
-  } finally {
-    await finishRefreshFeedback(refreshButton, refreshDeadline, () => requestVersion === indexRequestVersion);
-  }
-}
-
-/** 渲染列表表格（按创建时间倒序） */
-function renderTable(posts) {
-  const tbody = $('#posts-body');
-  if (!tbody) return;
-
-  tbody.replaceChildren();
-  if (!posts.length) {
-    const tr = document.createElement('tr');
-    tr.className = 'empty-row';
-    const td = document.createElement('td');
-    td.colSpan = 6;
-    td.textContent = '还没有文章，在下方编辑区填写内容后点击「保存」即可发布第一篇。';
-    tr.append(td);
-    tbody.append(tr);
-    return;
-  }
-  for (const p of [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))) {
-    const tr = document.createElement('tr');
-
-    const titleTd = document.createElement('td');
-    titleTd.textContent = p.title || '';
-    const slugTd = document.createElement('td');
-    slugTd.textContent = p.slug || '';
-    const tagsTd = document.createElement('td');
-    tagsTd.textContent = (p.tags || []).join(', ');
-    const statusTd = document.createElement('td');
-    statusTd.textContent = p.status || '';
-    const updatedTd = document.createElement('td');
-    updatedTd.textContent = new Date(p.updated_at).toLocaleString();
-    const actionsTd = document.createElement('td');
-
-    const editBtn = document.createElement('button');
-    editBtn.type = 'button';
-    editBtn.dataset.act = 'edit';
-    editBtn.dataset.file = p.filename || '';
-    editBtn.setAttribute('aria-label', '编辑');
-    editBtn.title = '编辑';
-    editBtn.textContent = '✏️';
-
-    const delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.dataset.act = 'del';
-    delBtn.dataset.file = p.filename || '';
-    delBtn.setAttribute('aria-label', '删除');
-    delBtn.title = '删除';
-    delBtn.textContent = '🗑️';
-
-    actionsTd.append(editBtn, delBtn);
-    tr.append(titleTd, slugTd, tagsTd, statusTd, updatedTd, actionsTd);
-    tbody.append(tr);
-  }
 }
 
 /** 从表单读取当前输入，生成文章元数据与正文 */
@@ -172,7 +70,7 @@ function setForm(meta, editingFilename = null) {
 
   if (hintEl) {
     if (editingFilename) {
-      hintEl.textContent = `更新时文件名保持 "${editingFilename}" 不变以保留已有外链。改 slug 仅影响列表展示。`;
+      hintEl.textContent = `更新时文件名保持 "${editingFilename}" 不变；修改 slug 会改变文章链接。`;
       hintEl.style.display = 'block';
     } else {
       hintEl.textContent = '';
@@ -197,8 +95,12 @@ async function upsert(isUpdate, oldFilename) {
     return;
   }
 
+  // 读取最新索引，用于 slug 唯一性与保留 created_at
+  const index = await Gist.getIndex();
+  const posts = index.posts || [];
+
   // slug 唯一性校验：新建时不得与已有文章重名，编辑时排除自身
-  const slugConflict = currentPosts.some(p =>
+  const slugConflict = posts.some(p =>
     p.filename !== (isUpdate ? oldFilename : null) && p.slug === meta.slug
   );
   if (slugConflict) {
@@ -208,7 +110,11 @@ async function upsert(isUpdate, oldFilename) {
 
   // 文件名：更新时保持旧文件名，避免外链失效；新建时基于当前日期 + slug
   const filename = isUpdate && oldFilename ? oldFilename : Util.buildFilename(now, meta.slug);
-  const existing = isUpdate ? currentPosts.find(p => p.filename === filename) : null;
+  const existing = isUpdate ? posts.find(p => p.filename === filename) : null;
+  if (isUpdate && !existing) {
+    toast('该文章已不存在，可能已被删除');
+    return;
+  }
   const createdAt = existing?.created_at || now;
 
   // 索引只存元数据，正文 body 仅写入 .md 文件
@@ -223,55 +129,37 @@ async function upsert(isUpdate, oldFilename) {
   // 组装 Front Matter + 正文
   const markdown = Util.buildFrontMatter({ ...meta, created_at: createdAt, updated_at: now });
 
-  // 调用封装的 upsertPost 更新 Gist 与 index.json
+  // 复用刚取的最新索引，避免 upsertPost 再读一次
   await Gist.upsertPost({
     filename,
     markdown,
-    indexUpdater(index) {
-      const posts = index.posts || [];
-      const existsIdx = posts.findIndex(p => p.filename === filename);
+    index,
+    indexUpdater(currentIndex) {
+      const list = currentIndex.posts || [];
+      const existsIdx = list.findIndex(p => p.filename === filename);
       if (existsIdx >= 0) {
         // 更新：保留 created_at，更新其他字段与 updated_at
-        posts[existsIdx] = { ...posts[existsIdx], ...metaForIndex, filename, updated_at: now };
+        list[existsIdx] = { ...list[existsIdx], ...metaForIndex, filename, updated_at: now };
       } else {
         // 新建：追加一条
-        posts.push({ ...metaForIndex, filename, created_at: createdAt, updated_at: now });
+        list.push({ ...metaForIndex, filename, created_at: createdAt, updated_at: now });
       }
       // 正文只存于 .md 文件：移除索引条目中的 body，并顺带清理历史冗余
-      index.posts = posts.map(({ body, ...rest }) => rest);
-      return index;
+      currentIndex.posts = list.map(({ body, ...rest }) => rest);
+      return currentIndex;
     }
   });
 
   document.dispatchEvent(new Event('admin-posts-changed'));
-  // 保存后继续编辑同一篇；点击“新建”才会重置
   editingFilename = filename;
   toast('已保存');
-  await loadIndex();
 }
 
-/** 删除文章（确认后执行） */
-async function del(filename) {
-  requirePAT();
-  await Gist.deletePost({
-    filename,
-    indexUpdater(index) {
-      index.posts = (index.posts || []).filter(p => p.filename !== filename);
-      return index;
-    }
-  });
-  document.dispatchEvent(new Event('admin-posts-changed'));
-  if (editingFilename === filename) editingFilename = null;
-  toast('已删除');
-  await loadIndex();
-}
-
-/** 绑定右上角工具栏：保存/清除 PAT、新建空白表单、保存按钮 */
+/** 绑定工具栏与编辑器：保存/清除 PAT、新建空白表单、保存按钮 */
 function bindToolbar() {
   const patSaveBtn = $('#pat-save');
   const patClearBtn = $('#pat-clear');
   const newBtn = $('#new');
-  const refreshBtn = $('#refresh-admin-posts');
   const saveBtn = $('#save');
   const patInput = $('#pat');
   const patToggle = $('#pat-toggle');
@@ -295,13 +183,9 @@ function bindToolbar() {
     }
   }
 
-  if (patInput) {
-    patInput.addEventListener('input', syncPatState);
-  }
+  if (patInput) patInput.addEventListener('input', syncPatState);
 
   syncPatState();
-
-  if (refreshBtn) refreshBtn.addEventListener('click', () => loadIndex(true));
 
   if (patSaveBtn && patInput) {
     patSaveBtn.addEventListener('click', () => {
@@ -310,6 +194,7 @@ function bindToolbar() {
       localStorage.setItem('gh_pat', v);
       toast('PAT 已保存到本地');
       syncPatState();
+      document.dispatchEvent(new Event('pat-changed'));
     });
   }
 
@@ -319,6 +204,7 @@ function bindToolbar() {
       localStorage.removeItem('gh_pat');
       toast('已清除本地 PAT');
       syncPatState();
+      document.dispatchEvent(new Event('pat-changed'));
     });
   }
 
@@ -347,7 +233,6 @@ function bindToolbar() {
   }
 
   if (saveBtn) {
-    // 只保留一个监听器，避免编辑后又触发新建逻辑
     saveBtn.addEventListener('click', () => upsert(Boolean(editingFilename), editingFilename));
   }
   const saveBottomBtn = $('#save-bottom');
@@ -356,52 +241,22 @@ function bindToolbar() {
   }
 }
 
-/**
- * 绑定表格中的“编辑/删除”按钮：
- * - 编辑：读取原 Markdown，解析 Front Matter，回填表单并记录文件名
- * - 删除：弹出确认框后直接删除
- */
-function bindTable() {
-  const postsTable = $('#posts');
-  if (!postsTable) return;
-
-  postsTable.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const act = btn.dataset.act;
-    const filename = btn.dataset.file;
-
-    if (act === 'edit') {
-      const md = await Gist.getPostFile(filename);
-      const post = currentPosts.find(p => p.filename === filename) || {};
-      const fmStripped = md.replace(/^---[\s\S]*?---\n?/, '');
-      setForm({ ...post, body: fmStripped }, filename);
-      editingFilename = filename;
-      // 编辑后滚动到顶部并聚焦标题输入框
-      const adminPage = document.getElementById('admin-page');
-      adminPage?.scrollTo({ top: 0, behavior: 'smooth' });
-      document.getElementById('title')?.focus();
-    }
-
-    if (act === 'del') {
-      if (confirm('确认删除该文章？')) {
-        await del(filename);
-      }
-    }
-  });
-}
-
 let initialized = false;
 
 export async function initAdmin() {
   if (initialized) return;
   initialized = true;
   bindToolbar();
-  bindTable();
-  await loadIndex();
 }
 
-if (document.body.classList.contains('admin-page')) {
-  document.title = `管理 - ${CONFIG.SITE_TITLE}`;
-  initAdmin().catch(err => alert(err.message));
+/** 首页文章列表点击“编辑”时调用：回填表单并进入编辑模式 */
+export async function openEditor(post) {
+  await initAdmin();
+  const md = await Gist.getPostFile(post.filename);
+  const fmStripped = md.replace(/^---[\s\S]*?---\n?/, '');
+  setForm({ ...post, body: fmStripped }, post.filename);
+  editingFilename = post.filename;
+  const adminPage = document.getElementById('admin-page');
+  adminPage?.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('title')?.focus();
 }
