@@ -73,8 +73,14 @@ if (rainAudio && rainAudioToggle) {
       playRain();
     }).catch(() => {});
   };
-  if (document.readyState === 'complete') tryAutoplay();
-  else window.addEventListener('load', tryAutoplay, { once: true });
+  // 延迟到 load 后的空闲时段再尝试自动播放，优先加载其它资源
+  const tryAutoplayLater = () => {
+    const run = () => { if (!interacted) tryAutoplay(); };
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 3000 });
+    else window.setTimeout(run, 3000);
+  };
+  if (document.readyState === 'complete') tryAutoplayLater();
+  else window.addEventListener('load', tryAutoplayLater, { once: true });
 }
 
 const rainBackground = document.querySelector('#rain-background');
@@ -102,7 +108,13 @@ if (rainBackground) {
     rainBackground.classList.remove('is-playing');
   });
   document.addEventListener('visibilitychange', updateBackground);
-  updateBackground();
+  // 延迟到 load 后的空闲时段再加载视频，优先加载其它资源
+  const startBackgroundLater = () => {
+    if ('requestIdleCallback' in window) window.requestIdleCallback(updateBackground, { timeout: 3000 });
+    else window.setTimeout(updateBackground, 3000);
+  };
+  if (document.readyState === 'complete') startBackgroundLater();
+  else window.addEventListener('load', startBackgroundLater, { once: true });
 }
 
 // 页面状态（内存中即可）

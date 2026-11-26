@@ -61,9 +61,9 @@ npx --yes serve .
 
 ### 雨景背景与排查
 
-首页的 `#rain-background` 默认静音、循环、内联播放，由 `res/js/index.js` 设置视频地址并调用 `play()`；只有收到 `playing` 事件才显示视频。播放失败或页面隐藏时显示 `res/img/rain.jpg`，图片不可用时使用渐变兜底；页面隐藏时暂停。`sw.js` 跳过 `rain.mp4` 和 `rain.mp3`，离线时不能依赖其播放。
+首页的 `#rain-background` 默认静音、循环、内联播放，`preload="none"`；`res/js/index.js` 在页面 load 后的空闲时段再设置视频地址并调用 `play()`，优先加载其它资源。只有收到 `playing` 事件才显示视频。播放失败或页面隐藏时显示 `res/img/rain.jpg`，图片不可用时使用渐变兜底；页面隐藏时暂停。`sw.js` 跳过 `rain.mp4` 和 `rain.mp3`，离线时不能依赖其播放。
 
-雨声是独立于静音视频的 `res/audio/rain.mp3`：音频元素使用 `preload="auto"` 提示浏览器预加载，但不保证立即下载或播放；页面加载完成后尝试自动播放，可能被浏览器策略阻止；首页导航按钮可播放或静音，状态通过 `aria-label` 和 `aria-pressed` 表示。支持 Web Audio 时解码后使用循环 BufferSource，不支持时回退到循环音频元素；加载或播放失败会恢复按钮状态。音频不会随页面隐藏或切换面板自动暂停。
+雨声是独立于静音视频的 `res/audio/rain.mp3`：音频元素使用 `preload="none"`，页面 load 后空闲时段再尝试自动播放（可能被浏览器策略阻止），不占用初始加载；首页导航按钮可播放或静音，状态通过 `aria-label` 和 `aria-pressed` 表示。支持 Web Audio 时解码后使用循环 BufferSource，不支持时回退到循环音频元素；加载或播放失败会恢复按钮状态。音频不会随页面隐藏或切换面板自动暂停。
 
 **排查背景不显示：** 请求成功不代表视频已解码或开始播放；`play()` 的错误目前被静默处理。检查浏览器自动播放策略、编码、页面隐藏和旧 Service Worker 缓存。
 
@@ -279,7 +279,7 @@ npx --yes serve .
 - [x] **P5 slug 唯一性校验**：新建时校验重名，编辑时排除自身。
 - [x] **P6 搜索图标 `target="_blank"` 补 `rel="noopener noreferrer"`**（index.html 三个 `<a>`）。
 - [x] **P7 详情页 vendor 脚本加 `defer`**：`post.html` 的 marked/purify 不阻塞 HTML 解析。
-- [ ] **P8 背景媒体降开销**：`rain.mp4`/`rain.mp3` 改 `preload="metadata"` 或延迟加载，评估压缩/降码率。
+- [x] **P8 背景媒体降开销**：静态图压缩，视频/音频延迟到空闲时段加载；`rain.mp4`/`rain.mp3` 压缩/降码率仍为待评估项。
 - [ ] **P9 SW 预缓存 `post.html` 壳页面**：解除注释并纳入 `STATIC_ASSETS`。
 - [ ] **P10 SW 动态缓存**：只缓存成功响应、设容量上限或版本清理；API 评估 stale-while-revalidate。
 - [ ] **P11 排序容错**：`created_at` 缺失/非法时的兜底排序。
