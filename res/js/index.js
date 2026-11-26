@@ -127,12 +127,22 @@ const state = {
   showDrafts: false // 是否显示草稿（仅在配置 PAT 时可用）
 };
 
-/** 将 ISO 时间格式化为 YYYY.MM.DD */
-function formatPostDate(value) {
+/** 将 ISO 时间格式化为 YYYY.MM.DD HH:MM（本地时间） */
+function formatDateTime(value) {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '';
   const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** 生成卡片底部时间信息：创建时间始终显示，更新时间仅在编辑过后显示 */
+function buildPostTime(post) {
+  const created = formatDateTime(post.created_at);
+  const updated = formatDateTime(post.updated_at);
+  const parts = [];
+  if (updated && updated !== created) parts.push(`更新 ${updated}`);
+  if (created) parts.push(`创建 ${created}`);
+  return parts.join(' · ');
 }
 
 /** 创建文章卡片 */
@@ -148,45 +158,19 @@ function createPostCard(post, index) {
   link.className = 'post-card-title';
   link.href = `post.html?slug=${encodeURIComponent(post.slug)}`;
   link.textContent = post.title || '';
+  head.append(link);
 
-  const meta = document.createElement('div');
-  meta.className = 'post-card-meta';
-
-  const date = document.createElement('time');
-  date.className = 'post-card-date';
-  date.dateTime = post.created_at || '';
-  date.textContent = formatPostDate(post.created_at);
-  meta.append(date);
+  const headActions = document.createElement('div');
+  headActions.className = 'post-card-head-actions';
 
   if (post.status !== 'published') {
     const badge = document.createElement('span');
     badge.className = 'draft-badge';
     badge.textContent = '草稿';
-    meta.append(badge);
+    headActions.append(badge);
   }
 
-  head.append(link, meta);
-
-  const summary = document.createElement('p');
-  summary.className = 'post-card-summary';
-  summary.textContent = post.summary || '';
-
-  const tags = document.createElement('div');
-  tags.className = 'post-card-tags';
-  (post.tags || []).forEach(tag => {
-    const chip = document.createElement('span');
-    chip.className = 'tag-chip';
-    chip.textContent = tag;
-    tags.append(chip);
-  });
-
-  li.append(head, summary);
-  if (tags.childElementCount) li.append(tags);
-
   if (hasPat()) {
-    const actions = document.createElement('div');
-    actions.className = 'post-card-actions';
-
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
     editBtn.className = 'panel-icon-button';
@@ -205,9 +189,37 @@ function createPostCard(post, index) {
     delBtn.title = '删除';
     delBtn.textContent = '🗑️';
 
-    actions.append(editBtn, delBtn);
-    li.append(actions);
+    headActions.append(editBtn, delBtn);
   }
+
+  if (headActions.childElementCount) head.append(headActions);
+
+  const summary = document.createElement('p');
+  summary.className = 'post-card-summary';
+  summary.textContent = post.summary || '';
+
+  const tags = document.createElement('div');
+  tags.className = 'post-card-tags';
+  (post.tags || []).forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.textContent = tag;
+    tags.append(chip);
+  });
+
+  li.append(head, summary);
+
+  const footer = document.createElement('div');
+  footer.className = 'post-card-footer';
+  if (tags.childElementCount) footer.append(tags);
+  const timeText = buildPostTime(post);
+  if (timeText) {
+    const timeEl = document.createElement('div');
+    timeEl.className = 'post-card-time';
+    timeEl.textContent = timeText;
+    footer.append(timeEl);
+  }
+  if (footer.childElementCount) li.append(footer);
 
   return li;
 }

@@ -773,6 +773,10 @@ html:has(body.posts-page) {
     white-space: nowrap;
 }
 
+.draft-toggle[hidden] {
+    display: none;
+}
+
 .draft-toggle input {
     margin: 0;
 }
@@ -859,7 +863,7 @@ html:has(body.posts-page) {
 
 .post-card-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 10px;
@@ -882,16 +886,6 @@ html:has(body.posts-page) {
     outline: 2px solid var(--accent-color);
     outline-offset: 3px;
     border-radius: 4px;
-}
-
-.post-card-date {
-    flex-shrink: 0;
-    color: var(--secondary-text);
-    font-family: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-    font-size: 0.76rem;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-    opacity: 0.8;
 }
 
 .post-card-summary {
@@ -929,7 +923,7 @@ html:has(body.posts-page) {
     border-color: var(--accent-color);
 }
 
-.post-card-meta {
+.post-card-head-actions {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -945,14 +939,44 @@ html:has(body.posts-page) {
     color: var(--accent-color);
     font-size: 0.7rem;
     line-height: 1.4;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
-.post-card-actions {
+.post-card-footer {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
     margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+}
+
+.post-card-footer .post-card-tags {
+    flex: 1 1 auto;
+}
+
+.post-card-time {
+    margin-left: auto;
+    color: var(--secondary-text);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+#post-list .post-card-head-actions .panel-icon-button {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: transparent;
+}
+
+#post-list .post-card-head-actions .panel-icon-button:hover:not(:disabled) {
+    border-color: var(--accent-color);
+    background: var(--search-bg);
 }
 
 @keyframes cardIn {

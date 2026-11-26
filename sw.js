@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'static-v46';
+const STATIC_CACHE = 'static-v47';
 const DYNAMIC_CACHE = 'dynamic-v3';
 const DYNAMIC_MAX_ENTRIES = 200;
 
