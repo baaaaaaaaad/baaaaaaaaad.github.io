@@ -256,6 +256,41 @@ npx --yes serve .
 - [ ] **评估大规模列表**：文章数量增长后测量搜索筛选、排序及 DOM 更新；必要时预计算搜索文本和排序或引入短防抖。文章列表已分页，仍需用不同数量测试筛选与渲染开销。
 - [ ] **检查周期性动画开销**：低端设备上观察时钟数字动画、遮罩及进度条宽度更新是否造成周期性布局或绘制；仅在实测有必要时优化，保持时间准确及无障碍状态同步。
 
+## 评论功能方案
+
+当前项目是纯静态 GitHub Pages，文章数据存于 GitHub Gist，浏览器直接访问 GitHub API，没有可供评论写入的自有后端。评论功能应优先使用独立的第三方评论服务，不能让访客使用站长 PAT，也不应直接把评论追加到 `index.json` 或文章 Markdown。
+
+### 推荐方案：Giscus
+
+优先考虑 [Giscus](https://giscus.app/)，使用 GitHub Discussions 保存评论：
+
+- 用户通过 GitHub 账号登录后评论、回复、编辑、删除和使用表情；
+- 不需要新增服务器、数据库或 PAT，前端只加载评论组件；
+- 评论与 Gist 文章数据解耦，适合当前 GitHub Pages + Gist 架构；
+- 建议单独创建公开的评论仓库，开启 Discussions 并安装 Giscus GitHub App，避免与博客代码仓库的议题混杂。
+
+详情页接入时，在 `post.html` 文章正文下方预留评论容器，由 `res/js/post.js` 在文章加载成功后动态初始化 Giscus。由于所有文章详情都使用 `post.html?slug=...`，不能使用 Giscus 的 `pathname` 映射，否则不同文章可能共用评论串；应使用 `specific` 映射，并以文章原始 `filename` 作为 `data-term`。更新文章时文件名保持不变，因此该标识比可修改的 `slug` 更稳定。
+
+评论组件必须在加载失败时不阻塞正文显示，并给出可访问的错误提示。详情页主题切换可先使用 Giscus 的 `preferred_color_scheme`，后续再评估通过消息同步深色/浅色主题。
+
+### 备选方案
+
+| 方案 | 登录方式 | 后端要求 | 适用情况 |
+| --- | --- | --- | --- |
+| **Utterances** | GitHub | 无 | 配置简单，但评论以 GitHub Issues 保存，管理和展示能力弱于 Discussions |
+| **Waline** | GitHub、Google 等 | 需要部署服务和数据库 | 需要多种登录方式、评论审核或更强定制能力 |
+| **Supabase/Firebase 自建** | 可自定义 | 托管后端 | 需要完全控制用户、评论、审核和数据模型，开发量较大 |
+
+Gitalk 需要额外处理 GitHub OAuth 配置，不作为本项目的首选。若只需要 GitHub 登录和基础评论，Giscus 的接入成本最低；若未来需要多种登录方式，再评估 Waline 或 Supabase。
+
+### 数据与安全注意事项
+
+- 评论不会自动随 Gist 文章删除；删除文章后对应 Discussion 仍可能保留，必要时由管理员手动归档或删除。
+- 不要把评论写入 `index.json` 或 Markdown，也不要把站长 PAT 暴露给访客。当前 `localStorage.gh_pat` 仅用于站长管理操作。
+- Giscus 的仓库、分类及 ID 配置属于公开前端配置，不包含密钥；评论内容遵循 GitHub Discussions 的公开可见性和社区规则。
+- 评论服务依赖 GitHub/Giscus 网络；离线或服务异常时，文章正文和上下篇导航仍应正常工作。
+- 接入前应在受控页面验证详情页按 `filename` 正确分串、主题切换、登录失败和评论加载失败提示；不要把 Mock 数据正常当作真实评论服务验证。
+
 ## 可选扩展
 
 - ~~**使用 GitHub OAuth 替代 PAT 粘贴**~~ ❌ 当前架构不可行：GitHub 已移除 Device Flow（2021）；PKCE / Authorization Code 流程的 client_secret 不能放纯静态前端；GitHub Pages 无后端做 token 交换。保留 PAT 方案。
